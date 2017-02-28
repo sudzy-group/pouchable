@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "module": "system",
+        "target": "es5",
+        "module": "es6",
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "declaration": true
+    },
+    "typeRoots": [
+          "../node_modules/@types"
+        ],
+    "types" : [
+          "core-js"
+    ],
+    "files": [
+        "sudzy.db.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
