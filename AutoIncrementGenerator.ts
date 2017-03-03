@@ -3,12 +3,13 @@
  */
 import * as PouchDB from 'pouchdb';
 import { ApplicationSettings } from './ApplicationSettings';
+import { IdGenerator } from './IdGenerator';
 
 /**
  * Gneral usage of all collections
  * Intended to be used as singleton per type
  */
-export class AutoIncrementProvider {
+export class AutoIncrementGenerator implements IdGenerator {
 
     static _start = 1000;
 
@@ -27,14 +28,14 @@ export class AutoIncrementProvider {
         this._type = 'auto-increment/' + type;
     }
 
-    getNext() {
+    get() {
         return new Promise((resolved, rejected) => {
             this._settings.get(this._type).then((v) => {
                 return this._settings.set(this._type, v + 1);
             }).then((v) => {
                 resolved(v);
             }).catch(() => {
-                return this._settings.set(this._type, AutoIncrementProvider._start);
+                return this._settings.set(this._type, AutoIncrementGenerator._start);
             }).then((v) => {
                 resolved(v);
             }).catch(rejected);
