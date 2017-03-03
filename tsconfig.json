@@ -1,22 +1,22 @@
 {
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
-        "module": "system",
         "target": "es5",
-        "module": "es6",
+        "module": "commonjs",
         "moduleResolution": "node",
-        "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "sourceMap": true,
+        "preserveConstEnums": true,
         "declaration": true
     },
     "typeRoots": [
-          "../node_modules/@types"
+          "node_modules/@types"
         ],
     "types" : [
-          "core-js"
+          "core-js",
+          "pouchdb"
     ],
-    "files": [
+    "include": [
         "sudzy.db.ts"
     ],
     "exclude": [

@@ -10,12 +10,19 @@
   "license": "ISC",
   "devDependencies": {
     "@types/core-js": "^0.9.35",
+    "mocha": "^3.2.0",
+    "mocha-typescript": "^1.0.22",
     "ts-node": "^2.1.0",
     "typescript": "^2.2.1"
   },
   "dependencies": {
     "@angular/core": "^2.4.8",
+    "@types/lodash": "^4.14.54",
+    "@types/mocha": "^2.2.39",
+    "@types/pouchdb": "^5.4.28",
+    "lodash": "^4.17.4",
     "pouchdb": "^6.1.2",
+    "reflect-metadata": "^0.1.10",
     "rxjs": "^5.2.0",
     "zone.js": "^0.7.7"
   },
