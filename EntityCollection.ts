@@ -96,25 +96,13 @@ export class EntityCollection {
     getById(id) {
         return new Promise((resolved, rejected) => {
             // generate id
-            let key = this.prefix + id;
+            let key = this.prefix + id + "/";
             this._db.allDocs({
                 include_docs: true,
                 startkey: key,
                 endkey: key + "\uffff"
             }).then((docs) => {
-                let core = null;
-                let decorators = [];
-                let search_keys_ref = [];
-                for (let result of docs.rows) {
-                    if (result.doc._id == key) {
-                        core = result.doc;
-                    } else if (_.startsWith(result.doc._id, key + '/sk')) {
-                        search_keys_ref.push(result.doc)
-                    } else {
-                        decorators.push(result.doc);
-                    }
-                }
-                let e = new Entity(this, id, core, decorators, search_keys_ref);
+                let e = this._createEntityFromDocs(docs, key, id);
                 return resolved(e);
             }).catch(() => {
                 return rejected('missing');
@@ -122,12 +110,55 @@ export class EntityCollection {
         })
     }
 
+    /**
+     * Find entity by key search
+     */
+    findByKey(search) {
+        return new Promise((resolved, rejected) => {
+            // generate id
+            let key = this.prefix + search + "/";
+            this._db.allDocs({
+                include_docs: true,
+                startkey: key,
+                endkey: key + "\uffff"
+            }).then((docs) => {
+                var ids = _.map(docs.rows, (r) => { return r.id.substr(key.length) });
+                let ps = [];
+                for (let id of ids) {
+                    ps.push(this.getById(id));
+                }
+                return Promise.all(ps);
+            }).then((entities) => {
+                return resolved(entities);
+            }).catch(() => {
+                return rejected('missing');
+            })
+        })
+    }
+
+    _createEntityFromDocs(docs, key, id) {
+        let core = null;
+        let decorators = [];
+        let search_keys_ref = [];
+        for (let result of docs.rows) {
+            if (result.doc._id == key) {
+                core = result.doc;
+            } else if (_.startsWith(result.doc._id, key + '/sk')) {
+                search_keys_ref.push(result.doc)
+            } else {
+                decorators.push(result.doc);
+            }
+        }
+        return new Entity(this, id, core, decorators, search_keys_ref);
+    }
+
     _resolveCore(core, id) {
-        core._id = this.prefix + id;
+        core._id = this.prefix + id + "/";
         let time = new Date().getTime();
         core.created_at = time;
         core.updated_at = time;
         core.type = this.type;
+        core.index = id;
         return core;
     }
 

@@ -52,7 +52,7 @@ import * as _ from 'lodash'
     testInsertBasic2(done: Function) {
         let collection = new EntityCollection("post", TestEntityCollection.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
-            let ref = "post/b/" + d.core._id.substr(5);
+            let ref = "post/b/" + d.core.index;
             if (d.search_keys_ref[0].ref != ref) {
                 throw new Error("missing ref");
             }
@@ -66,11 +66,25 @@ import * as _ from 'lodash'
     testInsertBasic3(done: Function) {
         let collection = new EntityCollection("post", TestEntityCollection.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
-            let id = d.core._id.substr(5);
+            let id = d.core.index;
             return collection.getById(id);
         }).then((d) => {
             if (!d.core._id) {
                 throw new Error("missing core doc");
+            }
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("basic insert and find")
+    testInsertAndFind(done: Function) {
+        let collection = new EntityCollection("post", TestEntityCollection.db);
+        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'special' }]).then((d) => {
+            let id = d.core.index;
+            return collection.findByKey('special');
+        }).then((d) => {
+            if (d.length != 1) {
+                throw new Error("couldn't find the right doc")
             }
             return done();
         }).catch(_.noop);
