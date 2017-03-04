@@ -3,10 +3,11 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
+import { Entity } from './Entity';
 
 /**
  * Gneral usage of all collections
@@ -17,7 +18,12 @@ export class EntityCollection {
     /**
      * @var the type of the collection (like 'posts', 'customers', etc.)
      */
-    protected _type : string;
+    public type : string;
+
+    /**
+     * @var the prefix used to identify the type
+     */
+    public prefix : string;
 
     /**
      * @var the db connection
@@ -27,52 +33,148 @@ export class EntityCollection {
     /**
      * Generates id for the entity
      */
-     protected _idGenerator: IdGenerator;
+    protected _idGenerator: IdGenerator;
 
     constructor(type: string, db: PouchDB, idGenerator?: IdGenerator) {
         if (!type || !db) {
             throw new TypeError("Missing type or db");
         }
-        this._type = type + '/';
+        this.type = type;
+        this.prefix = type + '/';
         this._db = db;
         this._idGenerator = idGenerator ? idGenerator : new DateIdGenerator()
     }
 
-    insert(doc, decorators? : any[], searchKeys? : any[]) {
-        return new Promise((resolved, rejected) => {
-            let id = this._idGenerator.get();
-            doc._id = this._type + id;
+    /**
+     * Insert a new entity
+     */
+    insert(core, decorators?: any[], keys? : any[]) {
 
-            this._db.put(doc).then(() => {
-                if (!decorators && !searchKeys) {
-                    // new Entity
-                    return resolved(doc);
-                }
-                let ps = [];
-                for (let decorator of decorators) {
-                    if (!decorator.type) {
-                        throw new Error("Unable to decorate with empty type.");
-                    }
-                    decorator._id = doc._id + '/' + decorator.type;
-                    ps.push(this._db.put(decorator));
-                }
-                for (let searchKey of searchKeys) {
-                    var searchKeyDoc = {
-                        _id: this._type + searchKey + '/' + id;
-                    }
-                    ps.push(this._db.put(searchKeyDoc));
-                }
-                return Promise.all(ps);
-            }).then(() => {
-                // entity
-                return resolved();
+        return new Promise((resolved, rejected) => {
+            // generate id
+            let id = this._idGenerator.get();
+            let e_core = this._resolveCore(core, id);
+            let e_decorators = decorators ? this._resolveDecorators(decorators, id) : [];
+            let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : [];
+            let search_keys = keys ? this._resolveSearchKeys(keys, id) : [];
+
+            let e = new Entity(this, id, e_core, e_decorators, e_search_keys_ref);
+            var all = _.concat(e_core, e_decorators, e_search_keys_ref, search_keys);
+            this._db.bulkDocs(all).then(() => {
+                return resolved(e);
             }).catch(rejected);
         })
     }
 
+    /**
+     * Remove entity from the collection
+     */
+    remove(entity) {
+        return new Promise((resolved, rejected) => {
+            // generate id
+            if (entity.search_keys_ref.length == 0) {
+                let all = _.concat(entity.core, entity.decorators, entity.searchKeys);
+                return this._removeEntityDocs(all, resolved, rejected, entity)
+            }
 
+            let refs = _.map(entity.search_keys_ref, 'ref');
+            let ps = [];
+            for (let ref of refs) {
+                ps.push(this._db.get(ref));
+            }
 
+            return Promise.all(ps).then((docs) => {
+                let all = _.concat(entity.core, entity.decorators, entity.searchKeys, docs);
+                return this._removeEntityDocs(all, resolved, rejected, entity)
+            })
+        })
+    }
 
+    /**
+     * Get entity by id
+     */
+    getById(id) {
+        return new Promise((resolved, rejected) => {
+            // generate id
+            let key = this.prefix + id;
+            this._db.allDocs({
+                include_docs: true,
+                startkey: key,
+                endkey: key + "\uffff"
+            }).then((docs) => {
+                let core = null;
+                let decorators = [];
+                let search_keys_ref = [];
+                for (let result of docs.rows) {
+                    if (result.doc._id == key) {
+                        core = result.doc;
+                    } else if (_.startsWith(result.doc._id, key + '/sk')) {
+                        search_keys_ref.push(result.doc)
+                    } else {
+                        decorators.push(result.doc);
+                    }
+                }
+                let e = new Entity(this, id, core, decorators, search_keys_ref);
+                return resolved(e);
+            }).catch(() => {
+                return rejected('missing');
+            })
+        })
+    }
 
+    _resolveCore(core, id) {
+        core._id = this.prefix + id;
+        let time = new Date().getTime();
+        core.created_at = time;
+        core.updated_at = time;
+        core.type = this.type;
+        return core;
+    }
 
+    _resolveDecorators(decorators, id) {
+        for (let decorator of decorators) {
+            if (!decorator.store) {
+                throw new Error("Unable to decorate with empty store.");
+            }
+            decorator._id = this.prefix + id + '/' + decorator.store;
+        }
+        return decorators;
+    }
+
+    _resolveSearchKeysRef(keys, id) {
+        var searchKeysRef = []
+        for (let searchKey of keys) {
+            if (!searchKey.key || !searchKey.val) {
+                throw new Error();
+            }
+            let ref = this.prefix + searchKey.val + '/' + id;
+            searchKeysRef.push({
+                _id: this.prefix + id + '/sk/' + searchKey.key,
+                ref: ref
+            })
+        }
+        return searchKeysRef;
+    }
+
+    _resolveSearchKeys(keys, id) {
+        var searchKeys = []
+        for (let searchKey of keys) {
+            let ref = this.prefix + searchKey.val + '/' + id;
+            searchKeys.push({
+                _id: ref
+            })
+        }
+        return searchKeys;
+    }
+
+    _removeEntityDocs(all, resolved, rejected, entity) {
+        for (let d of all) {
+            d._deleted = true;
+        }
+        return this._db.bulkDocs(all).then(() => {
+            return resolved(entity);
+        }).catch(() => {
+            return rejected(entity);
+        });
+    }
 }

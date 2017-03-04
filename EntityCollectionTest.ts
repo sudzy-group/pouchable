@@ -21,15 +21,18 @@ import * as _ from 'lodash'
         });
     }
 
-    @test ("insert should return a promise")
-    testInsert1(done: Function) {
+    @test ("insert doc should return entity")
+    testInsertDoc(done: Function) {
         let collection = new EntityCollection("post", TestEntityCollection.db);
         collection.insert({ a: "b" }).then((d) => {
+            if (d.core.a != "b") {
+                throw new Error("missing field a");
+            }
             return done();
         }).catch(_.noop);
     }
 
-    @test ("insert should return a promise")
+    @test ("decorators without store should fail")
     testDeocratorWithoutType(done: Function) {
         let collection = new EntityCollection("post", TestEntityCollection.db);
         collection.insert({ a: "b" }, [{ c : "c" }], ['a', 'b']).then(_.noop).catch(() => {
@@ -37,10 +40,38 @@ import * as _ from 'lodash'
         });
     }
 
-    @test ("insert should return a promise")
-    testInsertBasic(done: Function) {
+    @test ("basic insert")
+    testInsertBasic1(done: Function) {
         let collection = new EntityCollection("post", TestEntityCollection.db);
-        collection.insert({ a: "b" }, [ { type: 'ba', c: "c"}], ['a', 'b']).then((d) => {
+        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("basic insert check ref")
+    testInsertBasic2(done: Function) {
+        let collection = new EntityCollection("post", TestEntityCollection.db);
+        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
+            let ref = "post/b/" + d.core._id.substr(5);
+            if (d.search_keys_ref[0].ref != ref) {
+                throw new Error("missing ref");
+            }
+            return TestEntityCollection.db.get(ref);
+        }).then((d) => {
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("basic insert and get")
+    testInsertBasic3(done: Function) {
+        let collection = new EntityCollection("post", TestEntityCollection.db);
+        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
+            let id = d.core._id.substr(5);
+            return collection.getById(id);
+        }).then((d) => {
+            if (!d.core._id) {
+                throw new Error("missing core doc");
+            }
             return done();
         }).catch(_.noop);
     }
