@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import * as _ from 'lodash';
+import { concat, compact, map, startsWith } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -59,7 +59,7 @@ export class EntityCollection {
             let search_keys = keys ? this._resolveSearchKeys(keys, id) : [];
 
             let e = new Entity(this, id, e_core, e_decorators, e_search_keys_ref);
-            var all = _.concat(e_core, e_decorators, e_search_keys_ref, search_keys);
+            var all = compact(concat(e_core, e_decorators, e_search_keys_ref, search_keys));
             this._db.bulkDocs(all).then(() => {
                 return resolved(e);
             }).catch(rejected);
@@ -73,18 +73,18 @@ export class EntityCollection {
         return new Promise((resolved, rejected) => {
             // generate id
             if (entity.search_keys_ref.length == 0) {
-                let all = _.concat(entity.core, entity.decorators, entity.searchKeys);
+                let all = compact(concat(entity.core, entity.decorators, entity.searchKeys));
                 return this._removeEntityDocs(all, resolved, rejected, entity)
             }
 
-            let refs = _.map(entity.search_keys_ref, 'ref');
+            let refs = map(entity.search_keys_ref, 'ref');
             let ps = [];
             for (let ref of refs) {
                 ps.push(this._db.get(ref));
             }
 
             return Promise.all(ps).then((docs) => {
-                let all = _.concat(entity.core, entity.decorators, entity.searchKeys, docs);
+                let all = compact(concat(entity.core, entity.decorators, entity.searchKeys, docs));
                 return this._removeEntityDocs(all, resolved, rejected, entity)
             })
         })
@@ -113,16 +113,19 @@ export class EntityCollection {
     /**
      * Find entity by key search
      */
-    findByKey(search) {
+    findByKey(search, startsWith = false) {
         return new Promise((resolved, rejected) => {
-            // generate id
-            let key = this.prefix + search + "/";
+            let key = this.prefix + search + (startsWith ? "" : "/");
             this._db.allDocs({
                 include_docs: true,
                 startkey: key,
                 endkey: key + "\uffff"
             }).then((docs) => {
-                var ids = _.map(docs.rows, (r) => { return r.id.substr(key.length) });
+                // resolve all ids from the serach keys
+                var ids = map(docs.rows, (r) => {
+                    var start = startsWith ? r.id.indexOf('/', key.length) + 1 : key.length;
+                    return r.id.substr(start)
+                });
                 let ps = [];
                 for (let id of ids) {
                     ps.push(this.getById(id));
@@ -143,7 +146,7 @@ export class EntityCollection {
         for (let result of docs.rows) {
             if (result.doc._id == key) {
                 core = result.doc;
-            } else if (_.startsWith(result.doc._id, key + '/sk')) {
+            } else if (startsWith(result.doc._id, key + 'sk')) {
                 search_keys_ref.push(result.doc)
             } else {
                 decorators.push(result.doc);
