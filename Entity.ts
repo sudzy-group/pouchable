@@ -4,7 +4,7 @@
  * and sub coreuments that hold metadata and search terms for this entity.
  */
 import * as PouchDB from 'pouchdb';
-import _ from 'lodash';
+import { indexOf, map, intersection, assign, omitBy, isNil } from 'lodash';
 import { EntityCollection } from './EntityCollection'
 
 /**
@@ -48,5 +48,42 @@ export class Entity {
         this.decorators = decorators || [] ;
         this.search_keys_ref = search_keys_ref || [];
     }
+
+    addDecorator(store: string, decorator: any) {
+        if (!store || !decorator) {
+            throw new Error("unable to add store-less, empty decorator");
+        }
+
+        let existing_stores = map(this.decorators, 'store');
+        let conflict = indexOf(existing_stores, store);
+        if (conflict >= 0) {
+            throw new Error("unable to add existing decorator. (" + store + ")");
+        }
+
+        decorator._id = this._collection.prefix + store;
+        decorator._added = true;
+        this.decorators.push(decorator);
+    }
+
+    updateDecorator(store: string, decorator: any) {
+        if (!store || !decorator) {
+            throw new Error("unable to add store-less, empty decorator");
+        }
+        let existing_stores = map(this.decorators, 'store');
+        let index = indexOf(existing_stores, store);
+        if (index == -1) {
+            throw new Error("unable to update missing decorator, use add instead (" + store + ")");
+        }
+        assign(this.decorators[index], decorator);
+        omitBy(this.decorators[index], isNil);
+        this.decorators[index]._updated = true;
+    }
+
+    // removeDecorators(decorator_id, [ decorators ]) : [ decorators ]
+    // addSearchKey(key) : key
+    // removeSearchKey(key) : key
+    // save()
+    // rollback()
+
 
 }
