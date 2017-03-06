@@ -1,3 +1,5 @@
+# VSCode
+.vscode
 # Node generated files
 node_modules
 npm-debug.log
@@ -8,3 +10,4 @@ Thumbs.db
 *.js
 *.map
 *.d.ts
+

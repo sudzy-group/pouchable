@@ -113,7 +113,7 @@ import * as _ from 'lodash'
         }).catch(_.noop);
     }
 
-    @test("999 inserts and find") @timeout(2000)
+    @test("999 inserts and find") @timeout(4000)
     testInsertPerformance(done: Function) {
         let collection = new EntityCollection("post", TestEntityCollection.db);
         let ps = [];
@@ -199,6 +199,4 @@ import * as _ from 'lodash'
             done();
         }).catch(_.noop);
     }
-
-
 }

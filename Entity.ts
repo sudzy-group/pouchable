@@ -4,7 +4,7 @@
  * and sub coreuments that hold metadata and search terms for this entity.
  */
 import * as PouchDB from 'pouchdb';
-import { indexOf, map, intersection, assign, omitBy, isNil, findIndex } from 'lodash';
+import { indexOf, map, intersection, assign, omitBy, isNil, findIndex, pullAllBy } from 'lodash';
 import { EntityCollection } from './EntityCollection'
 
 /**
@@ -64,14 +64,15 @@ export class Entity {
         decorator._added = true;
         decorator.store = store;
         this.decorators.push(decorator);
+
+        return this;
     }
 
     updateDecorator(store: string, decorator: any) {
         if (!store || !decorator) {
             throw new Error("unable to add store-less, empty decorator");
         }
-        let existing_stores = map(this.decorators, 'store');
-        let index = indexOf(existing_stores, store);
+        let index = findIndex(this.decorators, {store : store});
         if (index == -1) {
             throw new Error("unable to update missing decorator, use add instead (" + store + ")");
         }
@@ -82,24 +83,25 @@ export class Entity {
         if (!this.decorators[index]._added) {
             this.decorators[index]._updated = true;
         }
+        return this;
     }
 
     removeDecorator(store: string) {
         if (!store) {
             throw new Error("unable to remove store-less decorator");
         }
-
         let existing_stores = map(this.decorators, 'store');
         let index = indexOf(existing_stores, store);
 
         if (index == -1) {
             throw new Error("unable to remove missing decorator, use add instead (" + store + ")");
         }
-
         if (this.decorators[index]._added) { // if was just added
-            return this.decorators.splice(index, 1);
+            this.decorators.splice(index, 1);
+        } else {
+            this.decorators[index]._deleted = true;
         }
-        this.decorators[index]._removed = true;
+        return this;
     }
 
     addSearchKey(key, value) {
@@ -110,6 +112,7 @@ export class Entity {
             ref: ref,
             _added: true
         })
+        return this;
     }
 
     removeSearchKey(value) {
@@ -119,13 +122,91 @@ export class Entity {
             throw new Error("missing key");
         }
         if (this.search_keys_ref[index]._added) {
-            return this.search_keys_ref.splice(index, 1);
+            this.search_keys_ref.splice(index, 1);
+        } else {
+            this.search_keys_ref[index]._deleted = true;
         }
-        this.search_keys_ref[index]._deleted = true;
+
+        return this;
     }
 
-    // save()
+    save() : Promise {
+        return new Promise((resolved, rejected) => {
+
+            let ps = [];
+            for (let decorator of this.decorators) {
+                if (decorator._added || decorator._updated || decorator._deleted) {
+                    delete decorator._added;
+                    delete decorator._updated;
+                    ps.push(this._collection.getDb().put(decorator));
+                }
+            }
+            pullAllBy(this.decorators, { _deleted : true }, '_deleted');
+
+            let fetch = [];
+            for (let sk_ref of this.search_keys_ref) {
+                if (sk_ref._added) {
+                    delete sk_ref._added;
+                    ps.push(this._collection.getDb().put({ _id: sk_ref.ref }))
+                    ps.push(this._collection.getDb().put(sk_ref));
+
+                }
+                if (sk_ref._deleted) {
+                    fetch.push(this._collection.getDb().get(sk_ref.ref));
+                    ps.push(this._collection.getDb().put(sk_ref));
+                }
+            }
+
+            pullAllBy(this.search_keys_ref, { _deleted : true }, '_deleted');
+
+            if (fetch.length == 0) {
+                var t = this;
+                return Promise.all(ps).then((ds) => {
+                    t.resolveRevs(ds);
+                    return resolved(t)
+                }).catch((m) => {
+                    rejected(m);
+                }) ;
+            }
+
+            var t = this;
+            Promise.all(fetch).then((sks) => {
+                for (let sk of sks) {
+                    sk._deleted = true;
+                    ps.push(this._collection.getDb().put(sk))
+                }
+                return Promise.all(ps);
+            }).then((ds) => {
+                t.resolveRevs(ds);
+                return resolved(t);
+            }).catch((m) => {
+                return rejected(m);
+            })
+        });
+    }
+
     // rollback()
+
+    resolveRevs(ds) {
+        let index = findIndex(ds, { id: this.core._id });
+        if (index != -1) {
+            this.core._rev = ds[index].rev;
+        }
+        
+        for (let d of this.decorators) {
+            let index = findIndex(ds, { id: d._id });
+            if (index != -1) {
+                d._rev = ds[index].rev;
+            }
+        }
+
+        for (let sk_ref of this.search_keys_ref) {
+            let index = findIndex(ds, { id: sk_ref._id });
+            if (index != -1) {
+                sk_ref._rev = ds[index].rev;   
+            }
+        }
+    }
 
 
 }

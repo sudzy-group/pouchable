@@ -69,7 +69,7 @@ import * as _ from 'lodash'
             // unsetting c and d properties, changing b's value
             e.removeDecorator('my-store');
             var d = e.decorators[0]
-            if (!d._removed) {
+            if (!d._deleted) {
                 throw new Error('remove failed')
             }
             return done();
@@ -111,4 +111,101 @@ import * as _ from 'lodash'
             return done();
         }).catch(_.noop);
     }
+
+    @test ("save no op")
+    testSaveNoOperation(done: Function) {
+        EntityTest.collection.insert({ a: "b" }, undefined, [{ key: 'number', val: 'testSaveNoOperation' }]).then((e) => {
+            return e.save();
+        }).then((e) => {
+            return EntityTest.collection.findByKey('testSaveNoOperation');
+        }).then((es) => {
+            if (es.length != 1 || es[0].decorators.length != 0) {
+                throw new Error("entity was not decorated")
+            }
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("insert doc should return entity")
+    testAddDecoratorAndSave(done: Function) {
+        EntityTest.collection.insert({ a: "b" }, undefined, [{ key: 'number', val: 'testAddDecoratorAndSave' }]).then((e) => {
+            e.addDecorator('my-store', { b : "v"});
+            return e.save();
+        }).then((e) => {
+            return EntityTest.collection.findByKey('testAddDecoratorAndSave');
+        }).then((es) => {
+            if (es.length != 1 || es[0].decorators.length != 1) {
+                throw new Error("entity was not decorated")
+            }
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("update and save")
+    testUpdateAndSave(done: Function) {
+        EntityTest.collection.insert({ a: "b" }, [ {store: 'my-store', email : "roy@sudzy.co"} ],
+        [{ key: 'number', val: 'testUpdateAndSave' }]).then((e) => {
+            e.updateDecorator('my-store', {email : "hbarr@sudzy.co", mobile: "6465490000"});
+            return e.save();
+        }).then((e) => {
+            return EntityTest.collection.findByKey('testUpdateAndSave');
+        }).then((es) => {
+            if (es.length != 1 || es[0].decorators.length != 1 || !es[0].decorators[0].mobile) {
+                throw new Error("entity was not updated")
+            }
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("remove decorator and save")
+    testRemoveDecoratorAndSave(done: Function) {
+        EntityTest.collection.insert({ a: "b" }, [ {store: 'my-store', email : "roy@sudzy.co"} ],
+        [{ key: 'number', val: 'testRemoveDecoratorAndSave' }]).then((e) => {
+            e.removeDecorator('my-store')
+            return e.save();
+        }).then((e) => {
+            return EntityTest.collection.findByKey('testRemoveDecoratorAndSave');
+        }).then((es) => {
+            if (es.length != 1 || es[0].decorators.length != 0) {
+                throw new Error("entity was not updated")
+            }
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("add search key and find")
+    testAddSearchKeyAndSave(done: Function) {
+        EntityTest.collection.insert({ a: "b" }, undefined,
+        [{ key: 'number', val: 'testAddSearchKey' }]).then((e) => {
+            e.addSearchKey('a', 'testAddSearchKey123')
+            return e.save();
+        }).then((e) => {
+            return EntityTest.collection.findByKey('testAddSearchKey123');
+        }).then((es) => {
+            if (es.length != 1) {
+                throw new Error("entity was not updated")
+            }
+            return done();
+        }).catch(_.noop);
+    }
+
+    @test ("remove search key and find")
+    testRemoveSearchKeyAndSave(done: Function) {
+        EntityTest.collection.insert({ a: "b" }, undefined,
+        [{ key: 'number', val: 'testRemoveSearchKeyAndSave' }]).then((e) => {
+            e.removeSearchKey('testRemoveSearchKeyAndSave')
+            return e.save();
+        }).then((e) => {
+            if (e.search_keys_ref.legnth > 0) {
+                throw new Error("Error removing search key");
+            }
+            return EntityTest.collection.findByKey('testRemoveSearchKeyAndSave');
+        }).then((es) => {
+            if (es.length != 0)  {
+                throw new Error("search key was not removed")
+            }
+            return done();
+        }).catch(_.noop);
+    }    
+
 }

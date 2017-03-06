@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith } from 'lodash';
+import { concat, compact, map, startsWith, findIndex } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -60,7 +60,8 @@ export class EntityCollection {
 
             let e = new Entity(this, id, e_core, e_decorators, e_search_keys_ref);
             var all = compact(concat(e_core, e_decorators, e_search_keys_ref, search_keys));
-            this._db.bulkDocs(all).then(() => {
+            this._db.bulkDocs(all).then((ds) => {
+                e.resolveRevs(ds);
                 return resolved(e);
             }).catch(rejected);
         })
@@ -139,6 +140,13 @@ export class EntityCollection {
         })
     }
 
+    /**
+     * Returns the parent database
+     */
+    getDb() {
+        return this._db;
+    }
+
     _createEntityFromDocs(docs, key, id) {
         let core = null;
         let decorators = [];
@@ -212,4 +220,5 @@ export class EntityCollection {
             return rejected(entity);
         });
     }
+
 }
