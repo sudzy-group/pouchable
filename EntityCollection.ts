@@ -183,7 +183,8 @@ export class EntityCollection {
             }
             let ref = this.prefix + searchKey.val + '/' + id;
             searchKeysRef.push({
-                _id: this.prefix + id + '/sk/' + searchKey.key,
+                _id: this.prefix + id + '/sk/' + searchKey.val,
+                key: searchKey.key,
                 ref: ref
             })
         }

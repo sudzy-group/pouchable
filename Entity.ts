@@ -4,7 +4,7 @@
  * and sub coreuments that hold metadata and search terms for this entity.
  */
 import * as PouchDB from 'pouchdb';
-import { indexOf, map, intersection, assign, omitBy, isNil } from 'lodash';
+import { indexOf, map, intersection, assign, omitBy, isNil, findIndex } from 'lodash';
 import { EntityCollection } from './EntityCollection'
 
 /**
@@ -60,8 +60,9 @@ export class Entity {
             throw new Error("unable to add existing decorator. (" + store + ")");
         }
 
-        decorator._id = this._collection.prefix + store;
+        decorator._id = this._collection.prefix + this._id + '/' + store;
         decorator._added = true;
+        decorator.store = store;
         this.decorators.push(decorator);
     }
 
@@ -76,12 +77,53 @@ export class Entity {
         }
         assign(this.decorators[index], decorator);
         omitBy(this.decorators[index], isNil);
-        this.decorators[index]._updated = true;
+
+        // if recently added just do the add, otherwise mark for update
+        if (!this.decorators[index]._added) {
+            this.decorators[index]._updated = true;
+        }
     }
 
-    // removeDecorators(decorator_id, [ decorators ]) : [ decorators ]
-    // addSearchKey(key) : key
-    // removeSearchKey(key) : key
+    removeDecorator(store: string) {
+        if (!store) {
+            throw new Error("unable to remove store-less decorator");
+        }
+
+        let existing_stores = map(this.decorators, 'store');
+        let index = indexOf(existing_stores, store);
+
+        if (index == -1) {
+            throw new Error("unable to remove missing decorator, use add instead (" + store + ")");
+        }
+
+        if (this.decorators[index]._added) { // if was just added
+            return this.decorators.splice(index, 1);
+        }
+        this.decorators[index]._removed = true;
+    }
+
+    addSearchKey(key, value) {
+        let ref = this._collection.prefix + value + '/' + this._id;
+        this.search_keys_ref.push({
+            _id: this._collection.prefix + this._id + '/sk/' + value,
+            key: key,
+            ref: ref,
+            _added: true
+        })
+    }
+
+    removeSearchKey(value) {
+        let id = this._collection.prefix + this._id + '/sk/' + value;
+        let index = findIndex(this.search_keys_ref, { _id: id });
+        if (index == -1) {
+            throw new Error("missing key");
+        }
+        if (this.search_keys_ref[index]._added) {
+            return this.search_keys_ref.splice(index, 1);
+        }
+        this.search_keys_ref[index]._deleted = true;
+    }
+
     // save()
     // rollback()
 
