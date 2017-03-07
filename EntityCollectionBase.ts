@@ -7,13 +7,13 @@ import { concat, compact, map, startsWith, findIndex } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
-import { Entity } from './Entity';
+import { EntityBase } from './EntityBase';
 
 /**
  * Gneral usage of all collections
  * Intended to be used as singleton per type
  */
-export class EntityCollection {
+export class EntityCollectionBase {
 
     /**
      * @var the type of the collection (like 'posts', 'customers', etc.)
@@ -48,7 +48,7 @@ export class EntityCollection {
     /**
      * Insert a new entity
      */
-    insert(core, decorators?: any[], keys? : any[]) {
+    insert(core, decorators?: any[], keys? : any[]) : Promise<EntityBase> {
 
         return new Promise((resolved, rejected) => {
             // generate id
@@ -58,7 +58,7 @@ export class EntityCollection {
             let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : [];
             let search_keys = keys ? this._resolveSearchKeys(keys, id) : [];
 
-            let e = new Entity(this, id, e_core, e_decorators, e_search_keys_ref);
+            let e = new EntityBase(this, id, e_core, e_decorators, e_search_keys_ref);
             var all = compact(concat(e_core, e_decorators, e_search_keys_ref, search_keys));
             this._db.bulkDocs(all).then((ds) => {
                 e.resolveRevs(ds);
@@ -160,7 +160,7 @@ export class EntityCollection {
                 decorators.push(result.doc);
             }
         }
-        return new Entity(this, id, core, decorators, search_keys_ref);
+        return new EntityBase(this, id, core, decorators, search_keys_ref);
     }
 
     _resolveCore(core, id) {

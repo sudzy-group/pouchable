@@ -1,20 +1,20 @@
 import * as PouchDB from 'pouchdb';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
-import { EntityCollection } from './EntityCollection';
+import { EntityCollectionBase } from './EntityCollectionBase';
 import * as _ from 'lodash'
 
-@suite class TestEntityCollection {
+@suite class EntityCollectionBaseTest {
 
     static db_name : string;
     static db: PouchDB;
 
     static before() {
-        TestEntityCollection.db_name = 'TestEntityCollection' + Math.random();
-        TestEntityCollection.db = new PouchDB(TestEntityCollection.db_name);
+        EntityCollectionBaseTest.db_name = 'TestEntityCollectionBase' + Math.random();
+        EntityCollectionBaseTest.db = new PouchDB(EntityCollectionBaseTest.db_name);
     }
 
     static after(done) {
-        TestEntityCollection.db.destroy().then(() => {
+        EntityCollectionBaseTest.db.destroy().then(() => {
             done();
         }).catch(function (err) {
           console.log(err);
@@ -23,7 +23,7 @@ import * as _ from 'lodash'
 
     @test ("insert doc should return entity")
     testInsertDoc(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }).then((d) => {
             if (d.core.a != "b") {
                 throw new Error("missing field a");
@@ -34,7 +34,7 @@ import * as _ from 'lodash'
 
     @test ("decorators without store should fail")
     testDeocratorWithoutType(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [{ c : "c" }], ['a', 'b']).then(_.noop).catch(() => {
             return done();
         });
@@ -42,7 +42,7 @@ import * as _ from 'lodash'
 
     @test ("basic insert")
     testInsertBasic1(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
             return done();
         }).catch(_.noop);
@@ -50,13 +50,13 @@ import * as _ from 'lodash'
 
     @test ("basic insert check ref")
     testInsertBasic2(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
             let ref = "post/b/" + d.core.index;
             if (d.search_keys_ref[0].ref != ref) {
                 throw new Error("missing ref");
             }
-            return TestEntityCollection.db.get(ref);
+            return EntityCollectionBaseTest.db.get(ref);
         }).then((d) => {
             return done();
         }).catch(_.noop);
@@ -64,7 +64,7 @@ import * as _ from 'lodash'
 
     @test ("basic insert and get")
     testInsertBasic3(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
             let id = d.core.index;
             return collection.getById(id);
@@ -78,13 +78,13 @@ import * as _ from 'lodash'
 
     @test ("missing get should fail")
     testMissingGet(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.getById("missing-id").then(_.noop).catch(() => done());
     }
 
     @test ("basic insert, remove and get")
     testInsertBasicRemove(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
             let id = d.core.index;
             return collection.getById(id);
@@ -101,7 +101,7 @@ import * as _ from 'lodash'
 
     @test ("basic insert and find")
     testInsertAndFind(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'special' }]).then((d) => {
             let id = d.core.index;
             return collection.findByKey('special');
@@ -115,7 +115,7 @@ import * as _ from 'lodash'
 
     @test("999 inserts and find") @timeout(4000)
     testInsertPerformance(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         let ps = [];
         for (let i=0;i<999;i++) {
             var s =_.padStart(i.toString(), 3, "0");
@@ -138,7 +138,7 @@ import * as _ from 'lodash'
 
     @test("20 inserts and find with start with") @timeout(2000)
     testStartsWith(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         let ps = [];
         for (let i=0;i<20;i++) {
             var s =_.padStart(i.toString(), 2, "0");
@@ -158,9 +158,9 @@ import * as _ from 'lodash'
         }).catch(_.noop);
     }
 
-    @test("inserts without find") @timeout(2000)
+    @test("inserts without find") @timeout(4000)
     testInsertNotFound(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         let ps = [];
         for (let i=1000;i<1999;i++) {
             var s =_.padStart(i.toString(), 3, "0");
@@ -178,7 +178,7 @@ import * as _ from 'lodash'
 
     @test("inserts similar") @timeout(2000)
     testSimilarDocs(done: Function) {
-        let collection = new EntityCollection("post", TestEntityCollection.db);
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         let ps = [];
         for (let i=0;i<100;i++) {
             var s =_.padStart(i.toString(), 3, "0");

@@ -4,13 +4,13 @@
  * and sub coreuments that hold metadata and search terms for this entity.
  */
 import * as PouchDB from 'pouchdb';
-import { indexOf, map, intersection, assign, omitBy, isNil, findIndex, pullAllBy } from 'lodash';
+import { map, assign, omitBy, isNil, findIndex, pullAllBy, filter } from 'lodash';
 import { EntityCollection } from './EntityCollection'
 
 /**
- * Each entity instance is
+ * Base class of entity, should not be used directly
  */
-export class Entity {
+export class EntityBase {
 
     /**
      * @var the collection
@@ -54,9 +54,8 @@ export class Entity {
             throw new Error("unable to add store-less, empty decorator");
         }
 
-        let existing_stores = map(this.decorators, 'store');
-        let conflict = indexOf(existing_stores, store);
-        if (conflict >= 0) {
+        let index = findIndex(this.decorators, {store : store});
+        if (index != -1) {
             throw new Error("unable to add existing decorator. (" + store + ")");
         }
 
@@ -86,25 +85,16 @@ export class Entity {
         return this;
     }
 
-    removeDecorator(store: string) {
-        if (!store) {
-            throw new Error("unable to remove store-less decorator");
-        }
-        let existing_stores = map(this.decorators, 'store');
-        let index = indexOf(existing_stores, store);
-
-        if (index == -1) {
-            throw new Error("unable to remove missing decorator, use add instead (" + store + ")");
-        }
-        if (this.decorators[index]._added) { // if was just added
-            this.decorators.splice(index, 1);
-        } else {
-            this.decorators[index]._deleted = true;
-        }
-        return this;
-    }
-
     addSearchKey(key, value) {
+        var sk_id = this._collection.prefix + this._id + '/sk/' + value
+        let index = findIndex(this.search_keys_ref, { _id: sk_id });
+        if (index != -1) {
+            if (this.search_keys_ref[index]._deleted) {
+                delete this.search_keys_ref[index]._deleted;
+            } 
+            return; 
+        }
+
         let ref = this._collection.prefix + value + '/' + this._id;
         this.search_keys_ref.push({
             _id: this._collection.prefix + this._id + '/sk/' + value,
@@ -130,37 +120,45 @@ export class Entity {
         return this;
     }
 
+    /**
+     * Persist the operations into the database 
+     */
     save() : Promise {
+
+        let t = this;
+        let decorators = this.decorators;
+        let collection = this._collection;
+        let search_keys_ref = this.search_keys_ref;
+
         return new Promise((resolved, rejected) => {
 
             let ps = [];
-            for (let decorator of this.decorators) {
+            for (let decorator of decorators) {
                 if (decorator._added || decorator._updated || decorator._deleted) {
                     delete decorator._added;
                     delete decorator._updated;
-                    ps.push(this._collection.getDb().put(decorator));
+                    ps.push(collection.getDb().put(decorator));
                 }
             }
-            pullAllBy(this.decorators, { _deleted : true }, '_deleted');
+            pullAllBy(decorators, { _deleted : true }, '_deleted');
 
             let fetch = [];
-            for (let sk_ref of this.search_keys_ref) {
+            for (let sk_ref of search_keys_ref) {
                 if (sk_ref._added) {
                     delete sk_ref._added;
-                    ps.push(this._collection.getDb().put({ _id: sk_ref.ref }))
-                    ps.push(this._collection.getDb().put(sk_ref));
+                    ps.push(collection.getDb().put({ _id: sk_ref.ref }))
+                    ps.push(collection.getDb().put(sk_ref));
 
                 }
                 if (sk_ref._deleted) {
-                    fetch.push(this._collection.getDb().get(sk_ref.ref));
-                    ps.push(this._collection.getDb().put(sk_ref));
+                    fetch.push(collection.getDb().get(sk_ref.ref));
+                    ps.push(collection.getDb().put(sk_ref));
                 }
             }
 
-            pullAllBy(this.search_keys_ref, { _deleted : true }, '_deleted');
+            pullAllBy(search_keys_ref, { _deleted : true }, '_deleted');
 
             if (fetch.length == 0) {
-                var t = this;
                 return Promise.all(ps).then((ds) => {
                     t.resolveRevs(ds);
                     return resolved(t)
@@ -169,11 +167,10 @@ export class Entity {
                 }) ;
             }
 
-            var t = this;
             Promise.all(fetch).then((sks) => {
                 for (let sk of sks) {
                     sk._deleted = true;
-                    ps.push(this._collection.getDb().put(sk))
+                    ps.push(collection.getDb().put(sk))
                 }
                 return Promise.all(ps);
             }).then((ds) => {
@@ -185,7 +182,47 @@ export class Entity {
         });
     }
 
-    // rollback()
+    /**
+     * Rollback operations to model
+     */
+    rollback() {
+        let t = this;
+        return new Promise((resolved, rejected) => {
+
+            // remove the new nodes
+            pullAllBy(t.decorators, [{ rev : undefined }], 'rev');
+            pullAllBy(t.search_keys_ref, [{ rev : undefined }], 'rev');
+
+            // revert the deleted search keys
+            let dsks = filter(t.search_keys_ref, (d) => d._deleted);
+            for (let sk of dsks) {
+                delete sk._deleted ;
+            }
+ 
+            // refresh the decorators that were updated
+            let dds = filter(t.decorators, (d) => (d._updated));
+            let ids = map(dds, '_id');
+            let ps = [];
+            for (let id of ids) {
+                ps.push(t._collection.getDb().get(id));
+            }
+
+            if (ps.length == 0) {
+                resolved(t);
+            }
+
+            Promise.all(ps).then((ds) => {
+                for(let d of ds) {
+                    let index = findIndex(t.decorators, d.id);
+                    t.decorators[index] = d.doc;
+                }
+                return resolved(t);               
+            }).catch((m) => {
+                rejected(m)
+            });
+        });        
+    }
+
 
     resolveRevs(ds) {
         let index = findIndex(ds, { id: this.core._id });
@@ -207,6 +244,5 @@ export class Entity {
             }
         }
     }
-
 
 }
