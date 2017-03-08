@@ -1,8 +1,9 @@
 /**
- * Represents each entity in the system 
+ * Represents each entity in the system, wrapper of EntityBase
  */
 import { map } from 'lodash';
 import { EntityBase } from './EntityBase'
+import { EntityRepository } from './EntityRepository'
 
 /**
  * Base class of entity, should not be used directly
@@ -10,17 +11,21 @@ import { EntityBase } from './EntityBase'
 export class Entity  {
 
     /**
-     * Needed for the basic CRUD operations
+     * the basic entity
      */
     protected _base : EntityBase;
+
+    /**
+     * the entity metadata repository
+     */
+    protected _repository : EntityRepository;
 
     constructor(base: EntityBase) {
         this._base = base;
     }
 
-    _getter(key) {
-                
-
+    private _getter(key) {
+        
     }
 
 }

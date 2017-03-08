@@ -27,9 +27,9 @@ import * as _ from 'lodash'
     @test ("insert doc should return entity")
     testAddDecorator(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }).then((e) => {
-            let o = _.keys(e.decorators).length;
-            e.addDecorator('my-store', { b : "v"});
-            if (_.keys(e.decorators).length != o + 1) {
+            let o = _.keys(e.buckets).length;
+            e.addBucket('my-store', { b : "v"});
+            if (_.keys(e.buckets).length != o + 1) {
                 throw new Error('addition failed')
             }
             return done();
@@ -39,9 +39,9 @@ import * as _ from 'lodash'
     @test ("update decorator")
     testUpdateDecorator1(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, [ { store: 'my-store', c: "c" }]).then((e) => {
-            let o = _.keys(e.decorators).length;
-            e.updateDecorator('my-store', { b : "v", c: 1});
-            if (_.keys(e.decorators).length != o || _.values(e.decorators)[0].b != "v" || _.values(e.decorators)[0].c != 1) {
+            let o = _.keys(e.buckets).length;
+            e.updateBucket('my-store', { b : "v", c: 1});
+            if (_.keys(e.buckets).length != o || _.values(e.buckets)[0].b != "v" || _.values(e.buckets)[0].c != 1) {
                 throw new Error('update failed')
             }
             return done();
@@ -51,11 +51,11 @@ import * as _ from 'lodash'
     @test ("update decorator with nil value")
     testUpdateDecorator2(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, [ { store: 'my-store', c: "c", d: "d" }]).then((e) => {
-            let o = _.keys(e.decorators).length;
+            let o = _.keys(e.buckets).length;
             // unsetting c and d properties, changing b's value
-            e.updateDecorator('my-store', { b : 1, c: null, d: undefined});
-            var d = e.decorators['my-store']
-            if (_.keys(e.decorators).length != o || d.b != 1 || d.c || d.d || !d._updated) {
+            e.updateBucket('my-store', { b : 1, c: null, d: undefined});
+            var d = e.buckets['my-store']
+            if (_.keys(e.buckets).length != o || d.b != 1 || d.c || d.d || !d._updated) {
                 throw new Error('update failed')
             }
             return done();
@@ -92,7 +92,7 @@ import * as _ from 'lodash'
         }).then((e) => {
             return EntityBaseTest.collection.findByKey('testSaveNoOperation');
         }).then((es) => {
-            if (es.length != 1 || _.keys(es[0].decorators).length != 0) {
+            if (es.length != 1 || _.keys(es[0].buckets).length != 0) {
                 throw new Error("entity was not decorated")
             }
             return done();
@@ -102,12 +102,12 @@ import * as _ from 'lodash'
     @test ("insert doc should return entity")
     testAddDecoratorAndSave(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: 'number', val: 'testAddDecoratorAndSave' }]).then((e) => {
-            e.addDecorator('my-store', { b : "v"});
+            e.addBucket('my-store', { b : "v"});
             return e.save();
         }).then((e) => {
             return EntityBaseTest.collection.findByKey('testAddDecoratorAndSave');
         }).then((es) => {
-            if (es.length != 1 || _.keys(es[0].decorators).length != 1) {
+            if (es.length != 1 || _.keys(es[0].buckets).length != 1) {
                 throw new Error("entity was not decorated")
             }
             return done();
@@ -118,12 +118,12 @@ import * as _ from 'lodash'
     testUpdateAndSave(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, [ {store: 'my-store', email : "roy@sudzy.co"} ],
         [{ key: 'number', val: 'testUpdateAndSave' }]).then((e) => {
-            e.updateDecorator('my-store', {email : "hbarr@sudzy.co", mobile: "6465490000"});
+            e.updateBucket('my-store', {email : "hbarr@sudzy.co", mobile: "6465490000"});
             return e.save();
         }).then((e) => {
             return EntityBaseTest.collection.findByKey('testUpdateAndSave');
         }).then((es) => {
-            if (es.length != 1 || _.keys(es[0].decorators).length != 1 || !es[0].decorators['my-store'].mobile) {
+            if (es.length != 1 || _.keys(es[0].buckets).length != 1 || !es[0].buckets['my-store'].mobile) {
                 throw new Error("entity was not updated")
             }
             return done();
@@ -184,12 +184,12 @@ import * as _ from 'lodash'
     @test ("insert decorator and rollback should not return decorator")
     testAddDecoratorAndRollback(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: 'number', val: 'testAddDecoratorAndRollback' }]).then((e) => {
-            e.addDecorator('my-store', { b : "v"});
+            e.addBucket('my-store', { b : "v"});
             return e.rollback();
         }).then((e) => {
             return EntityBaseTest.collection.findByKey('testAddDecoratorAndRollback');
         }).then((es) => {
-            if (es.length != 1 || _.values(es[0].decorators).length != 0) {
+            if (es.length != 1 || _.values(es[0].buckets).length != 0) {
                 throw new Error("entity was decorated")
             }
             return done();
@@ -200,14 +200,14 @@ import * as _ from 'lodash'
     testAddManyDecoratorsAndSave(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, undefined).then((e) => {
             for(let i=0;i<5;i++) {
-                e.addDecorator('my-store' + i.toString(), { b : "testAddManyDecoratorsAndSave" + i.toString()});
+                e.addBucket('my-store' + i.toString(), { b : "testAddManyDecoratorsAndSave" + i.toString()});
                 e.addSearchKey("v" + i.toString(), "testAddManyDecoratorsAndSave" + i.toString());
             }
             return e.save();
         }).then((e) => {
             return EntityBaseTest.collection.findByKey('testAddManyDecoratorsAndSave1');
         }).then((es) => {
-            if (es.length != 1 || _.values(es[0].decorators).length != 5) {
+            if (es.length != 1 || _.values(es[0].buckets).length != 5) {
                 throw new Error("entity was decorated")
             }
             return done();
@@ -218,16 +218,16 @@ import * as _ from 'lodash'
     testAddThenUpdate(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testAddThenUpdate"}]).then((e) => {
             for(let i=0;i<5;i++) {
-                e.addDecorator('my-store' + i.toString(), { b : "testAddThenUpdate" + i.toString()});
+                e.addBucket('my-store' + i.toString(), { b : "testAddThenUpdate" + i.toString()});
             }
             for(let i=0;i<5;i++) {
-                e.updateDecorator('my-store' + i.toString(), { b : "testAddThenUpdate11"});
+                e.updateBucket('my-store' + i.toString(), { b : "testAddThenUpdate11"});
             }
             return e.save();
         }).then((e) => {
             return EntityBaseTest.collection.findByKey('testAddThenUpdate');
         }).then((es) => {
-            if (es.length != 1 ||  _.values(es[0].decorators)[0].b != "testAddThenUpdate11") {
+            if (es.length != 1 ||  _.values(es[0].buckets)[0].b != "testAddThenUpdate11") {
                 throw new Error("entity was decorated")
             }
             return done();
@@ -237,13 +237,13 @@ import * as _ from 'lodash'
     @test ("save and rollback and save results in same decorator ")
     testAddThenUpdateSeveralTimes(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testAddThenUpdateSeveralTimes"}]).then((e) => {
-            e.addDecorator('my-store', { b : "testAddThenUpdateSeveralTimes"});
+            e.addBucket('my-store', { b : "testAddThenUpdateSeveralTimes"});
             return e.save();
         }).then((e) => {
-            e.updateDecorator('my-store', { b : "testAddThenUpdateSeveralTimes1"});
+            e.updateBucket('my-store', { b : "testAddThenUpdateSeveralTimes1"});
             return e.rollback();
         }).then((e) => {
-            e.updateDecorator('my-store', { b : "testAddThenUpdateSeveralTimes2"});
+            e.updateBucket('my-store', { b : "testAddThenUpdateSeveralTimes2"});
             return e.save();
         }).then((e) => {
             return EntityBaseTest.collection.getById(e.getId());
@@ -255,13 +255,13 @@ import * as _ from 'lodash'
     @test ("save and rollback results in same decorator ")
     testSaveAndRollback(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testAddThenUpdateSeveralTimes"}]).then((e) => {
-            e.addDecorator('my-store', { b : "testSaveAndRollback"});
+            e.addBucket('my-store', { b : "testSaveAndRollback"});
             return e.save();
         }).then((e) => {
-            e.updateDecorator('my-store', { b : "testSaveAndRollback1"});
+            e.updateBucket('my-store', { b : "testSaveAndRollback1"});
             return e.rollback();
         }).then((e) => {
-            if (e.decorators['my-store'].b != "testSaveAndRollback") {
+            if (e.buckets['my-store'].b != "testSaveAndRollback") {
                 throw new Error("my store was not rollback")
             }
             return done();
@@ -271,13 +271,13 @@ import * as _ from 'lodash'
     @test ("rollback then save results in same decorator ")
     testRollbackTheSave(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testRollbackTheSave"}]).then((e) => {
-            e.addDecorator('my-store', { b : "testRollbackTheSave"});
+            e.addBucket('my-store', { b : "testRollbackTheSave"});
             return e.rollback();
         }).then((e) => {
-            e.updateDecorator('my-store', { b : "testRollbackTheSave1"});
+            e.updateBucket('my-store', { b : "testRollbackTheSave1"});
             return e.save();
         }).then((e) => {
-            if (e.decorators['my-store'].b != "testRollbackTheSave1") {
+            if (e.buckets['my-store'].b != "testRollbackTheSave1") {
                 throw new Error("my store was not saved")
             }
             return done();
@@ -287,37 +287,37 @@ import * as _ from 'lodash'
     @test ("add store less decorator")
     testStorelessDecorator(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testRollbackTheSave"}]).then((e) => {
-            e.addDecorator('', { b : "testRollbackTheSave"});
+            e.addBucket('', { b : "testRollbackTheSave"});
         }).then(_.noop).catch(() => done());
     }     
 
     @test ("add existing decorator should result in error")
     testAddExistingDecorator(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testAddExistingDecorator"}]).then((e) => {
-            e.addDecorator('my-store', { b : "testAddExistingDecorator"});
+            e.addBucket('my-store', { b : "testAddExistingDecorator"});
             return e.save();
         }).then((e) => {
-            e.addDecorator('my-store', { b : "testAddExistingDecorator"});
+            e.addBucket('my-store', { b : "testAddExistingDecorator"});
         }).then(_.noop).catch(() => done());
     }     
 
     @test ("update storeless decorator should result in error")
     testUpdateMissingDecorator(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testUpdateMissingDecorator"}]).then((e) => {
-            e.addDecorator('my-store', { b : "testUpdateMissingDecorator"});
+            e.addBucket('my-store', { b : "testUpdateMissingDecorator"});
             return e.save();
         }).then((e) => {
-            e.updateDecorator('no-store', { b : "testUpdateMissingDecorator"});
+            e.updateBucket('no-store', { b : "testUpdateMissingDecorator"});
         }).then(_.noop).catch(() => done());
     }     
 
     @test ("update storeless decorator should result in error")
     testUpdateEmptyDecorator(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testUpdateMissingDecorator"}]).then((e) => {
-            e.addDecorator('my-store', { b : "testUpdateMissingDecorator"});
+            e.addBucket('my-store', { b : "testUpdateMissingDecorator"});
             return e.save();
         }).then((e) => {
-            e.updateDecorator('my-store', undefined);
+            e.updateBucket('my-store', undefined);
         }).then(_.noop).catch(() => done());
     }     
 

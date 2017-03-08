@@ -28,16 +28,16 @@ export class EntityBase {
     public core;
 
     /**
-     * @var the decorator objects
+     * @var the bucket objects
      */
-    public decorators = {};
+    public buckets = {};
 
     /**
      * @var the search keys objects
      */
     public search_keys_ref = {};
 
-    constructor(collection: EntityCollectionBase, id : string, core: any, decorators?, search_keys_ref?) {
+    constructor(collection: EntityCollectionBase, id : string, core: any, buckets?, search_keys_ref?) {
         if (!core) {
             throw new TypeError("Missing type or db");
         }
@@ -45,8 +45,8 @@ export class EntityBase {
         this._collection = collection;
         this._id = id;
         this.core = core;
-        if (decorators) {
-            this.decorators = decorators;
+        if (buckets) {
+            this.buckets = buckets;
         }
         if (search_keys_ref) {
             this.search_keys_ref = search_keys_ref
@@ -60,35 +60,35 @@ export class EntityBase {
         return this._id;
     }
 
-    addDecorator(store: string, decorator: any) {
-        if (!store || !decorator || store.length == 0) {
-            throw new Error("unable to add store-less, empty decorator");
+    addBucket(name: string, bucket: any) {
+        if (!name || !bucket || name.length == 0) {
+            throw new Error("unable to add store-less, empty bucket");
         }
 
-        var d = this.decorators[store];
+        var d = this.buckets[name];
         if (d) {
-            throw new Error("unable to add existing decorator. (" + store + ")");
+            throw new Error("unable to add existing bucket. (" + name + ")");
         }
 
-        decorator._id = this._collection.prefix + this._id + '/' + store;
-        decorator._added = true;
-        decorator.store = store;
-        this.decorators[store] = decorator;
+        bucket._id = this._collection.prefix + this._id + '/' + name;
+        bucket._added = true;
+        bucket.store = name;
+        this.buckets[name] = bucket;
 
         return this;
     }
 
-    updateDecorator(store: string, decorator: any) {
-        if (!store || !decorator) {
-            throw new Error("unable to add store-less, empty decorator");
+    updateBucket(name: string, bucket: any) {
+        if (!name || !bucket) {
+            throw new Error("unable to add store-less, empty bucket");
         }
         
-        var d = this.decorators[store];
+        var d = this.buckets[name];
         if (!d) {
-            throw new Error("updable to update missing decorator");
+            throw new Error("updable to update missing bucket");
         }
 
-        assign(d, decorator);
+        assign(d, bucket);
         omitBy(d, isNil);
 
         // if recently added just do the add, otherwise mark for update
@@ -139,18 +139,18 @@ export class EntityBase {
     save() : Promise<EntityBase> {
 
         let t = this;
-        let decorators = this.decorators;
+        let buckets = this.buckets;
         let collection = this._collection;
         let search_keys_ref = this.search_keys_ref;
 
         return new Promise((resolved, rejected) => {
 
             let ps = [];
-            forIn(decorators, (decorator, store) => {
-                if (decorator._added || decorator._updated || decorator._deleted) {
-                    delete decorator._added;
-                    delete decorator._updated;
-                    ps.push(collection.getDb().put(decorator));
+            forIn(buckets, (bucket, store) => {
+                if (bucket._added || bucket._updated || bucket._deleted) {
+                    delete bucket._added;
+                    delete bucket._updated;
+                    ps.push(collection.getDb().put(bucket));
                 }
             });
 
@@ -200,7 +200,7 @@ export class EntityBase {
         return new Promise((resolved, rejected) => {
 
             // remove the new nodes
-            pullAllBy(t.decorators, [{ rev : undefined }], 'rev');
+            pullAllBy(t.buckets, [{ rev : undefined }], 'rev');
             pullAllBy(t.search_keys_ref, [{ rev : undefined }], 'rev');
 
             // revert the deleted search keys
@@ -209,8 +209,8 @@ export class EntityBase {
                 delete sk._deleted ;
             }
  
-            // refresh the decorators that were updated
-            let dds = filter(t.decorators, (d) => (d._updated));
+            // refresh the buckets that were updated
+            let dds = filter(t.buckets, (d) => (d._updated));
             let ids = map(dds, '_id');
             let ps = [];
             for (let id of ids) {
@@ -223,7 +223,7 @@ export class EntityBase {
 
             Promise.all(ps).then((ds) => {
                 for(let d of ds) {
-                    t.decorators[d.store] = d;
+                    t.buckets[d.store] = d;
                 }
                 return resolved(t);               
             }).catch((m) => {
@@ -238,7 +238,7 @@ export class EntityBase {
             this.core._rev = ds[index].rev;
         }
         
-        forIn(this.decorators, (d, store) => {
+        forIn(this.buckets, (d, store) => {
             let index = findIndex(ds, { id: d._id });
             if (index != -1) {
                 d._rev = ds[index].rev;
