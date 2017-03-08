@@ -3,6 +3,8 @@
 # Node generated files
 node_modules
 npm-debug.log
+# code coverage results
+coverage
 # OS generated files
 Thumbs.db
 .DS_Store
