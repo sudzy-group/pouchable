@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, findIndex } from 'lodash';
+import { concat, compact, map, startsWith, findIndex, values, keys, uniq } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -54,12 +54,12 @@ export class EntityCollectionBase {
             // generate id
             let id = this._idGenerator.get();
             let e_core = this._resolveCore(core, id);
-            let e_decorators = decorators ? this._resolveDecorators(decorators, id) : [];
-            let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : [];
+            let e_decorators = decorators ? this._resolveDecorators(decorators, id) : {};
+            let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : {};
             let search_keys = keys ? this._resolveSearchKeys(keys, id) : [];
 
             let e = new EntityBase(this, id, e_core, e_decorators, e_search_keys_ref);
-            var all = compact(concat(e_core, e_decorators, e_search_keys_ref, search_keys));
+            var all = compact(concat(e_core, values(e_decorators), values(e_search_keys_ref), search_keys));
             this._db.bulkDocs(all).then((ds) => {
                 e.resolveRevs(ds);
                 return resolved(e);
@@ -72,20 +72,19 @@ export class EntityCollectionBase {
      */
     remove(entity) {
         return new Promise((resolved, rejected) => {
-            // generate id
-            if (entity.search_keys_ref.length == 0) {
-                let all = compact(concat(entity.core, entity.decorators, entity.searchKeys));
+            if (keys(entity.search_keys_ref).length == 0) {
+                let all = compact(concat(entity.core, values(entity.decorators)));
                 return this._removeEntityDocs(all, resolved, rejected, entity)
             }
 
-            let refs = map(entity.search_keys_ref, 'ref');
+            let refs = map(values(entity.search_keys_ref), 'ref');
             let ps = [];
             for (let ref of refs) {
                 ps.push(this._db.get(ref));
             }
 
             return Promise.all(ps).then((docs) => {
-                let all = compact(concat(entity.core, entity.decorators, entity.searchKeys, docs));
+                let all = compact(concat(entity.core, values(entity.decorators), values(entity.searchKeys), docs));
                 return this._removeEntityDocs(all, resolved, rejected, entity)
             })
         })
@@ -94,7 +93,7 @@ export class EntityCollectionBase {
     /**
      * Get entity by id
      */
-    getById(id) {
+    getById(id) : Promise<EntityBase> {
         return new Promise((resolved, rejected) => {
             // generate id
             let key = this.prefix + id + "/";
@@ -114,7 +113,7 @@ export class EntityCollectionBase {
     /**
      * Find entity by key search
      */
-    findByKey(search, startsWith = false) {
+    findByKey(search, startsWith = false) : Promise<EntityBase[]> {
         return new Promise((resolved, rejected) => {
             let key = this.prefix + search + (startsWith ? "" : "/");
             this._db.allDocs({
@@ -123,10 +122,10 @@ export class EntityCollectionBase {
                 endkey: key + "\uffff"
             }).then((docs) => {
                 // resolve all ids from the serach keys
-                var ids = map(docs.rows, (r) => {
+                var ids = uniq(map(docs.rows, (r) => {
                     var start = startsWith ? r.id.indexOf('/', key.length) + 1 : key.length;
                     return r.id.substr(start)
-                });
+                }));
                 let ps = [];
                 for (let id of ids) {
                     ps.push(this.getById(id));
@@ -149,15 +148,15 @@ export class EntityCollectionBase {
 
     _createEntityFromDocs(docs, key, id) {
         let core = null;
-        let decorators = [];
-        let search_keys_ref = [];
+        let decorators = {};
+        let search_keys_ref = {};
         for (let result of docs.rows) {
             if (result.doc._id == key) {
                 core = result.doc;
             } else if (startsWith(result.doc._id, key + 'sk')) {
-                search_keys_ref.push(result.doc)
+                search_keys_ref[result.doc._id.substr(key.length + 4)] = result.doc;
             } else {
-                decorators.push(result.doc);
+                decorators[result.doc.store] = result.doc;
             }
         }
         return new EntityBase(this, id, core, decorators, search_keys_ref);
@@ -174,40 +173,42 @@ export class EntityCollectionBase {
     }
 
     _resolveDecorators(decorators, id) {
+        let result = {};
         for (let decorator of decorators) {
             if (!decorator.store) {
                 throw new Error("Unable to decorate with empty store.");
             }
             decorator._id = this.prefix + id + '/' + decorator.store;
+            result[decorator.store] = decorator;
         }
-        return decorators;
+        return result;
     }
 
     _resolveSearchKeysRef(keys, id) {
-        var searchKeysRef = []
+        var result = {}
         for (let searchKey of keys) {
             if (!searchKey.key || !searchKey.val) {
-                throw new Error();
+                throw new Error("missing key value for search keys");
             }
             let ref = this.prefix + searchKey.val + '/' + id;
-            searchKeysRef.push({
+            result[searchKey.val] = {
                 _id: this.prefix + id + '/sk/' + searchKey.val,
                 key: searchKey.key,
                 ref: ref
-            })
+            }
         }
-        return searchKeysRef;
+        return result;
     }
 
     _resolveSearchKeys(keys, id) {
-        var searchKeys = []
+        var result = []
         for (let searchKey of keys) {
             let ref = this.prefix + searchKey.val + '/' + id;
-            searchKeys.push({
+            result.push({
                 _id: ref
             })
         }
-        return searchKeys;
+        return result;
     }
 
     _removeEntityDocs(all, resolved, rejected, entity) {

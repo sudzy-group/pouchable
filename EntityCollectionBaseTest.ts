@@ -1,3 +1,4 @@
+import { subscribeToResult } from 'rxjs/util/subscribeToResult';
 import * as PouchDB from 'pouchdb';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import { EntityCollectionBase } from './EntityCollectionBase';
@@ -53,7 +54,7 @@ import * as _ from 'lodash'
         let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
             let ref = "post/b/" + d.core.index;
-            if (d.search_keys_ref[0].ref != ref) {
+            if (d.search_keys_ref['b'].ref != ref) {
                 throw new Error("missing ref");
             }
             return EntityCollectionBaseTest.db.get(ref);
@@ -99,6 +100,22 @@ import * as _ from 'lodash'
         }).then(_.noop).catch(() => done())
     }
 
+    @test ("basic insert, remove without search keys")
+    testInsertBasicRemoveNoSearchKeys(done: Function) {
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
+        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], undefined).then((e) => {
+            return collection.getById(e.getId());
+        }).then((e) => {
+            if (!e.core._id) {
+                throw new Error("missing core doc");
+            }
+            return collection.remove(e);
+        }).then((e) => {
+            let id = e.core.index;
+            return collection.getById(id);
+        }).then(_.noop).catch(() => done())
+    }    
+
     @test ("basic insert and find")
     testInsertAndFind(done: Function) {
         let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
@@ -113,7 +130,7 @@ import * as _ from 'lodash'
         }).catch(_.noop);
     }
 
-    @test("999 inserts and find") @timeout(4000)
+    @test("999 inserts and find") @timeout(5000)
     testInsertPerformance(done: Function) {
         let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         let ps = [];
@@ -158,7 +175,7 @@ import * as _ from 'lodash'
         }).catch(_.noop);
     }
 
-    @test("inserts without find") @timeout(4000)
+    @test("inserts without find") @timeout(5000)
     testInsertNotFound(done: Function) {
         let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         let ps = [];
@@ -199,4 +216,82 @@ import * as _ from 'lodash'
             done();
         }).catch(_.noop);
     }
+
+    @test("insert and remove all") @timeout(7000)
+    testInsertRemove(done: Function) {
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
+        let ps = [];
+        for (let i=0;i<100;i++) {
+            var s =_.padStart(i.toString(), 3, "0");
+            let p = collection.insert({ a: "b" + s }, [ { store: 'c', c: "c" + s}], [{ key : 'a', val : 'testInsertRemove' + s }])
+            ps.push(p);
+        }
+        Promise.all(ps).then((ds) => {
+            return collection.findByKey('testInsertRemove', true);
+        }).then((es) => {
+            if (es.length != 100) {
+                throw new Error ("not all instances removed")
+            }
+            let ps = []
+            for (let e of es) {
+                ps.push(collection.remove(e));
+            }
+            return Promise.all(ps);
+        }).then((ps) => {
+            return collection.findByKey('testInsertRemove', true);
+        }).then((es) => {
+            if (es.length > 0) {
+                throw new Error ("not all instances removed")
+            }
+            done();
+        }).catch(_.noop);
+    }
+
+    @test("several entity with several decorators") @timeout(9000)
+    testInsertSeveralDecorators(done: Function) {
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
+        let ps = [];
+        for (let i=0;i<100;i++) {
+            var s =_.padStart(i.toString(), 3, "0");
+
+            let stores = [];  
+            for (var j=0;j<Math.random()*10;j++) {
+                stores.push({ store: 'c' + j, c: "c" + s + j});
+            }
+            let keys = [];  
+            for (var j=0;j<Math.random()*10;j++) {
+                keys.push({ key : 'a' + j, val : 'testInsertSeveralDecorators' + s + "-" + j});
+            }
+            let p = collection.insert({ a: "b" + s }, stores, keys)
+            ps.push(p);
+        }
+        Promise.all(ps).then((d) => {
+            return collection.findByKey('testInsertSeveralDecorators', true);
+        }).then((es) => {
+            if (es.length != 100) {
+                console.log(es.length)
+                throw new Error ("not all instances removed")
+            }
+            done();
+        }).catch(_.noop);
+    }
+
+    @test ("missing db")
+    testMissingDb() {
+        try {
+            let collection = new EntityCollectionBase("post", undefined);
+        } catch(e) {
+            return;
+        }
+        throw new Error("undefined db")
+    }
+
+
+    @test ("wrong search key provided")
+    testInsertWrongSearchKey(done: Function) {
+        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
+        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', novalue : 'b' }]).then((d) => {
+        }).catch(() => done())
+    }
+
 }

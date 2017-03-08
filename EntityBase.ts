@@ -4,8 +4,8 @@
  * and sub coreuments that hold metadata and search terms for this entity.
  */
 import * as PouchDB from 'pouchdb';
-import { map, assign, omitBy, isNil, findIndex, pullAllBy, filter } from 'lodash';
-import { EntityCollection } from './EntityCollection'
+import { map, assign, omitBy, isNil, findIndex, pullAllBy, filter, forIn, unset, values, forInRight } from 'lodash';
+import { EntityCollectionBase } from './EntityCollectionBase'
 
 /**
  * Base class of entity, should not be used directly
@@ -15,7 +15,7 @@ export class EntityBase {
     /**
      * @var the collection
      */
-    protected _collection : EntityCollection;
+    protected _collection : EntityCollectionBase;
 
     /**
      * Unique id for this entity
@@ -30,14 +30,14 @@ export class EntityBase {
     /**
      * @var the decorator objects
      */
-    public decorators : any[];
+    public decorators = {};
 
     /**
      * @var the search keys objects
      */
-    public search_keys_ref : any[];
+    public search_keys_ref = {};
 
-    constructor(collection: EntityCollection, id : string, core: any, decorators?: any[], search_keys_ref?: any[]) {
+    constructor(collection: EntityCollectionBase, id : string, core: any, decorators?, search_keys_ref?) {
         if (!core) {
             throw new TypeError("Missing type or db");
         }
@@ -45,24 +45,35 @@ export class EntityBase {
         this._collection = collection;
         this._id = id;
         this.core = core;
-        this.decorators = decorators || [] ;
-        this.search_keys_ref = search_keys_ref || [];
+        if (decorators) {
+            this.decorators = decorators;
+        }
+        if (search_keys_ref) {
+            this.search_keys_ref = search_keys_ref
+        }
+    }
+
+    /**
+     * Returns the id
+     */
+    public getId() {
+        return this._id;
     }
 
     addDecorator(store: string, decorator: any) {
-        if (!store || !decorator) {
+        if (!store || !decorator || store.length == 0) {
             throw new Error("unable to add store-less, empty decorator");
         }
 
-        let index = findIndex(this.decorators, {store : store});
-        if (index != -1) {
+        var d = this.decorators[store];
+        if (d) {
             throw new Error("unable to add existing decorator. (" + store + ")");
         }
 
         decorator._id = this._collection.prefix + this._id + '/' + store;
         decorator._added = true;
         decorator.store = store;
-        this.decorators.push(decorator);
+        this.decorators[store] = decorator;
 
         return this;
     }
@@ -71,51 +82,53 @@ export class EntityBase {
         if (!store || !decorator) {
             throw new Error("unable to add store-less, empty decorator");
         }
-        let index = findIndex(this.decorators, {store : store});
-        if (index == -1) {
-            throw new Error("unable to update missing decorator, use add instead (" + store + ")");
+        
+        var d = this.decorators[store];
+        if (!d) {
+            throw new Error("updable to update missing decorator");
         }
-        assign(this.decorators[index], decorator);
-        omitBy(this.decorators[index], isNil);
+
+        assign(d, decorator);
+        omitBy(d, isNil);
 
         // if recently added just do the add, otherwise mark for update
-        if (!this.decorators[index]._added) {
-            this.decorators[index]._updated = true;
+        if (!d._added) {
+            d._updated = true;
         }
         return this;
     }
 
     addSearchKey(key, value) {
         var sk_id = this._collection.prefix + this._id + '/sk/' + value
-        let index = findIndex(this.search_keys_ref, { _id: sk_id });
-        if (index != -1) {
-            if (this.search_keys_ref[index]._deleted) {
-                delete this.search_keys_ref[index]._deleted;
+        var sk = this.search_keys_ref[value];
+        if (sk) {
+            if (sk._deleted) {
+                delete sk._deleted;
             } 
             return; 
         }
 
         let ref = this._collection.prefix + value + '/' + this._id;
-        this.search_keys_ref.push({
+        this.search_keys_ref[value] = {
             _id: this._collection.prefix + this._id + '/sk/' + value,
             key: key,
             ref: ref,
             _added: true
-        })
+        };
         return this;
     }
 
-    removeSearchKey(value) {
-        let id = this._collection.prefix + this._id + '/sk/' + value;
-        let index = findIndex(this.search_keys_ref, { _id: id });
-        if (index == -1) {
-            throw new Error("missing key");
-        }
-        if (this.search_keys_ref[index]._added) {
-            this.search_keys_ref.splice(index, 1);
-        } else {
-            this.search_keys_ref[index]._deleted = true;
-        }
+    removeSearchKey(key) {
+
+        forInRight(this.search_keys_ref, (sk, value) => {
+            if (sk.key == key) {
+                if (sk._added) {
+                    unset(this.search_keys_ref, value)
+                } else {
+                    sk._deleted = true;
+                }
+            }
+        });
 
         return this;
     }
@@ -123,7 +136,7 @@ export class EntityBase {
     /**
      * Persist the operations into the database 
      */
-    save() : Promise {
+    save() : Promise<EntityBase> {
 
         let t = this;
         let decorators = this.decorators;
@@ -133,30 +146,27 @@ export class EntityBase {
         return new Promise((resolved, rejected) => {
 
             let ps = [];
-            for (let decorator of decorators) {
+            forIn(decorators, (decorator, store) => {
                 if (decorator._added || decorator._updated || decorator._deleted) {
                     delete decorator._added;
                     delete decorator._updated;
                     ps.push(collection.getDb().put(decorator));
                 }
-            }
-            pullAllBy(decorators, { _deleted : true }, '_deleted');
+            });
 
             let fetch = [];
-            for (let sk_ref of search_keys_ref) {
+            forIn(search_keys_ref, (sk_ref, value) => {
                 if (sk_ref._added) {
                     delete sk_ref._added;
                     ps.push(collection.getDb().put({ _id: sk_ref.ref }))
                     ps.push(collection.getDb().put(sk_ref));
-
                 }
                 if (sk_ref._deleted) {
                     fetch.push(collection.getDb().get(sk_ref.ref));
                     ps.push(collection.getDb().put(sk_ref));
+                    unset(search_keys_ref, value);
                 }
-            }
-
-            pullAllBy(search_keys_ref, { _deleted : true }, '_deleted');
+            }) 
 
             if (fetch.length == 0) {
                 return Promise.all(ps).then((ds) => {
@@ -185,7 +195,7 @@ export class EntityBase {
     /**
      * Rollback operations to model
      */
-    rollback() {
+    rollback() : Promise<EntityBase> {
         let t = this;
         return new Promise((resolved, rejected) => {
 
@@ -208,13 +218,12 @@ export class EntityBase {
             }
 
             if (ps.length == 0) {
-                resolved(t);
+                return resolved(t);
             }
 
             Promise.all(ps).then((ds) => {
                 for(let d of ds) {
-                    let index = findIndex(t.decorators, d.id);
-                    t.decorators[index] = d.doc;
+                    t.decorators[d.store] = d;
                 }
                 return resolved(t);               
             }).catch((m) => {
@@ -223,26 +232,25 @@ export class EntityBase {
         });        
     }
 
-
     resolveRevs(ds) {
         let index = findIndex(ds, { id: this.core._id });
         if (index != -1) {
             this.core._rev = ds[index].rev;
         }
         
-        for (let d of this.decorators) {
+        forIn(this.decorators, (d, store) => {
             let index = findIndex(ds, { id: d._id });
             if (index != -1) {
                 d._rev = ds[index].rev;
             }
-        }
+        })
 
-        for (let sk_ref of this.search_keys_ref) {
+        forIn(this.search_keys_ref, (sk_ref, value) => {
             let index = findIndex(ds, { id: sk_ref._id });
             if (index != -1) {
                 sk_ref._rev = ds[index].rev;   
             }
-        }
+        })
     }
 
 }

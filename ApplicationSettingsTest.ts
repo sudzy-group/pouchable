@@ -32,6 +32,16 @@ import * as _ from 'lodash';
         }).catch(_.noop)
     }
 
+    @test ("application settings with no db")
+    testMissingDb() {
+        try {
+            let settings = new ApplicationSettings(undefined);
+        } catch(e) {
+            return
+        }
+        throw new Error("created with missing db");
+    }
+
     @test ("set should store 5")
     testSetAndIsExists(done: Function) {
         let settings = new ApplicationSettings(ApplicationSettings.db);
