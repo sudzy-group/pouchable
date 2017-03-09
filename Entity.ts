@@ -3,7 +3,7 @@
  */
 import { map } from 'lodash';
 import { EntityBase } from './EntityBase'
-import { Repository } from './Repository'
+import { Collection } from './Collection'
 
 /**
  * Base class of entity, should not be used directly
@@ -15,49 +15,25 @@ export class Entity  {
      */
     protected _base : EntityBase;
 
-    /**
-     * the entity metadata repository
-     */
-    protected _repo : EntityRepository;
-
     constructor(base: EntityBase) {
         this._base = base;
     }
 
-    private _getter(key) {
-        let name = this._repo._getBucket(key);
-        return this._base.buckets[name] && this._base.buckets[name].key;
+    /**
+     * Metadata for a given key
+     * @param key returns the metadata for a given key
+     */
+    protected getMetadata(key) {
+        return this.metadata[key];
     }
 
-    private _setter(key, value) {
-        let name = this._repo._getBucket(key);
-        if (!this._base.buckets[name]) {
-            this._base.addBucket(name, { key : value });
-        } else {
-            this._base.updateBucket(name, { key : value })
-        }
-        return this;
+    /**
+     * Get the value of the property 
+     * @param key 
+     */
+    protected getValue(key) {
+        let md = this.getMetadata(key);
+        return md.mandatory ? this._base.core[key] : undefined;
     }
 
-    public save() {
-        let t = this;
-        new Promise((resolved, rejected) => {
-            this._base.save().then(() => {
-                return resolved(t);
-            }).catch(() => {
-                return rejected('unable to save entity')
-            })
-        });      
-    }
-
-    public rollback() {
-        let t = this;
-        new Promise((resolved, rejected) => {
-            this._base.rollback().then(() => {
-                return resolved(t);
-            }).catch(() => {
-                return rejected('unable to rollback entity')
-            })
-        });      
-    }
 }
