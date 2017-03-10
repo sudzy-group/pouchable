@@ -77,5 +77,5 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
 ```
 # How Pouchable works under the hood?
 ![Image of Entity]
-(https://sudzy-group.github.io/pouchable/resources/pouchable_entity.png)
+(https://raw.githubusercontent.com/sudzy-group/pouchable/master/resources/pouchable_entity.png)
 
