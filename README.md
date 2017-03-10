@@ -7,7 +7,7 @@ npm install pouchdb pouchable --save
 
 Include the followings in your project
 <pre>
-import { Entity, EntityField, Collection } from 'sudzy.db'
+import { Entity, EntityField, Collection } from 'pouchable'
 import * as PouchDB from 'pouchdb';
 </pre>
 
@@ -44,13 +44,10 @@ class Post extends Entity {
 Declare your collections
 <pre>
 class Posts extends Collection<Post> {
-
     public getName(): string {
         return "posts";
     }
-
 }
-
 </pre>
 
 You are ready to work with Pouchable:
@@ -65,10 +62,3 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
    console.log(p.title);
 }).catch(() => {});
 </pre>
-
-
-
-
-
-
-
