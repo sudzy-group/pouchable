@@ -1,5 +1,5 @@
 # @Pouchable
-PouchDB simplified by TypeScript's Decorators (annotations)
+PouchDB simplified by TypeScript Decorators (annotations)
 
 <pre>
 npm install pouchdb pouchable --save
