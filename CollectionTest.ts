@@ -79,18 +79,30 @@ import * as _ from 'lodash';
     @test ("insert doc with buckets should return entity")
     testInsertDocCore(done: Function) {
         let users = new Users(CollectionTest.db, User);
-        users.insert({ name: "New One", mobile : "6465490560"}).then((p) => {
+        users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
             return users.get(p.id);
         }).then((p) => {
-            if (!p) {
-                throw new Error("couldn't found p");
+            if (!p || !p.street) {
+                throw new Error("couldn't find p or the data");
             }
             done();
         }).catch(_.noop);
     }
 
-
-
+    @test ("find by key value")
+    testFindByKeyVal(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490561", street : "Orchard St."}).then((p) => {
+            return users.find('mobile', '0561');
+        }).then((ps) => {
+            if (!ps || ps.length != 1 || ps[0].street != "Orchard St.") {
+                throw new Error("couldn't find p or the data");
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }    
 }
 
 /**

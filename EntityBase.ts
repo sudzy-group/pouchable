@@ -99,8 +99,8 @@ export class EntityBase {
     }
 
     addSearchKey(key, value) {
-        var sk_id = this._collection.prefix + this._id + '/sk/' + value
-        var sk = this.search_keys_ref[value];
+        let keyval = key + '/' + value;
+        var sk = this.search_keys_ref[keyval];
         if (sk) {
             if (sk._deleted) {
                 delete sk._deleted;
@@ -108,9 +108,9 @@ export class EntityBase {
             return; 
         }
 
-        let ref = this._collection.prefix + value + '/' + this._id;
-        this.search_keys_ref[value] = {
-            _id: this._collection.prefix + this._id + '/sk/' + value,
+        let ref = this._collection.prefix + keyval + '/' + this._id;
+        this.search_keys_ref[keyval] = {
+            _id: this._collection.prefix + this._id + '/sk/' + keyval,
             key: key,
             ref: ref,
             _added: true

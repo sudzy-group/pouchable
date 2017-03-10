@@ -1,9 +1,8 @@
-import { isFunction } from 'rxjs/util/isFunction';
 /**
  * Represents a resource collection in the system
  */
 import * as PouchDB from 'pouchdb';
-import { map, forIn, keys, values } from 'lodash';
+import { map, forIn, keys, values, isFunction } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
@@ -53,6 +52,18 @@ export abstract class Collection<T extends Entity> {
             });
         })
     }    
+
+    public find(key, value, options?) : Promise<T[]> { 
+        return new Promise((resolved, rejected)=> {
+            let t = this;
+            this._collectionBase.findByKey(key, value, options).then((ebs) => {
+                return resolved(map(ebs, (eb) => { return new t._ctor(eb)}) );
+            }).catch((m) => {
+                return rejected(m)
+            });
+        })
+    }  
+
 
      private _resolveCore(data) {
         let md = this._ctor.prototype.metadata;

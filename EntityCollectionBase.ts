@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, findIndex, values, keys, uniq } from 'lodash';
+import { concat, compact, map, startsWith, findIndex, values, keys, uniq, defaults, forIn } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -56,7 +56,7 @@ export class EntityCollectionBase {
             let e_core = this._resolveCore(core, id);
             let e_buckets = buckets ? this._resolveBuckets(buckets, id) : {};
             let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : {};
-            let search_keys = keys ? this._resolveSearchKeys(keys, id) : [];
+            let search_keys = keys ? this._resolveSearchKeys(e_search_keys_ref, id) : [];
 
             let e = new EntityBase(this, id, e_core, e_buckets, e_search_keys_ref);
             var all = compact(concat(e_core, values(e_buckets), values(e_search_keys_ref), search_keys));
@@ -96,13 +96,13 @@ export class EntityCollectionBase {
     getById(id) : Promise<EntityBase> {
         return new Promise((resolved, rejected) => {
             // generate id
-            let key = this.prefix + id + "/";
+            let prefix = this.prefix + id + "/";
             this._db.allDocs({
                 include_docs: true,
-                startkey: key,
-                endkey: key + "\uffff"
+                startkey: prefix,
+                endkey: prefix + "\uffff"
             }).then((docs) => {
-                let e = this._createEntityFromDocs(docs, key, id);
+                let e = this._createEntityFromDocs(docs, prefix, id);
                 return resolved(e);
             }).catch(() => {
                 return rejected('missing');
@@ -113,17 +113,18 @@ export class EntityCollectionBase {
     /**
      * Find entity by key search
      */
-    findByKey(search, startsWith = false) : Promise<EntityBase[]> {
+    findByKey(key, value, opts?) : Promise<EntityBase[]> {
         return new Promise((resolved, rejected) => {
-            let key = this.prefix + search + (startsWith ? "" : "/");
-            this._db.allDocs({
+            let startsWith = opts && opts.startsWith
+            let search = this.prefix + key + '/' + value + (startsWith ? "" : "/");
+            this._db.allDocs(defaults({
                 include_docs: true,
-                startkey: key,
-                endkey: key + "\uffff"
-            }).then((docs) => {
+                startkey: search,
+                endkey: search + "\uffff"
+            }, opts)).then((docs) => {
                 // resolve all ids from the serach keys
                 var ids = uniq(map(docs.rows, (r) => {
-                    var start = startsWith ? r.id.indexOf('/', key.length) + 1 : key.length;
+                    var start = startsWith ? r.id.indexOf('/', search.length) + 1 : search.length;
                     return r.id.substr(start)
                 }));
                 let ps = [];
@@ -146,15 +147,15 @@ export class EntityCollectionBase {
         return this._db;
     }
 
-    _createEntityFromDocs(docs, key, id) {
+    _createEntityFromDocs(docs, prefix, id) {
         let core = null;
         let buckets = {};
         let search_keys_ref = {};
         for (let result of docs.rows) {
-            if (result.doc._id == key) {
+            if (result.doc._id == prefix) {
                 core = result.doc;
-            } else if (startsWith(result.doc._id, key + 'sk')) {
-                search_keys_ref[result.doc._id.substr(key.length + 4)] = result.doc;
+            } else if (startsWith(result.doc._id, prefix + 'sk')) {
+                search_keys_ref[result.doc._id.substr(prefix.length + 4)] = result.doc;
             } else {
                 buckets[result.doc.store] = result.doc;
             }
@@ -190,9 +191,10 @@ export class EntityCollectionBase {
             if (!searchKey.key || !searchKey.val) {
                 throw new Error("missing key value for search keys");
             }
-            let ref = this.prefix + searchKey.val + '/' + id;
-            result[searchKey.val] = {
-                _id: this.prefix + id + '/sk/' + searchKey.val,
+            let keyval = searchKey.key + '/' + searchKey.val;
+            let ref = this.prefix + keyval + '/' + id;
+            result[keyval] = {
+                _id: this.prefix + id + '/sk/' + keyval,
                 key: searchKey.key,
                 ref: ref
             }
@@ -202,12 +204,11 @@ export class EntityCollectionBase {
 
     _resolveSearchKeys(keys, id) {
         var result = []
-        for (let searchKey of keys) {
-            let ref = this.prefix + searchKey.val + '/' + id;
+        forIn(keys, (searchKey) => {
             result.push({
-                _id: ref
+                _id: searchKey.ref
             })
-        }
+        })
         return result;
     }
 

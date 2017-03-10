@@ -90,7 +90,7 @@ import * as _ from 'lodash'
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: 'number', val: 'testSaveNoOperation' }]).then((e) => {
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testSaveNoOperation');
+            return EntityBaseTest.collection.findByKey('number', 'testSaveNoOperation');
         }).then((es) => {
             if (es.length != 1 || _.keys(es[0].buckets).length != 0) {
                 throw new Error("entity was not decorated")
@@ -105,7 +105,7 @@ import * as _ from 'lodash'
             e.addBucket('my-store', { b : "v"});
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testAddDecoratorAndSave');
+            return EntityBaseTest.collection.findByKey('number', 'testAddDecoratorAndSave');
         }).then((es) => {
             if (es.length != 1 || _.keys(es[0].buckets).length != 1) {
                 throw new Error("entity was not decorated")
@@ -121,7 +121,7 @@ import * as _ from 'lodash'
             e.updateBucket('my-store', {email : "hbarr@sudzy.co", mobile: "6465490000"});
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testUpdateAndSave');
+            return EntityBaseTest.collection.findByKey('number', 'testUpdateAndSave');
         }).then((es) => {
             if (es.length != 1 || _.keys(es[0].buckets).length != 1 || !es[0].buckets['my-store'].mobile) {
                 throw new Error("entity was not updated")
@@ -137,7 +137,7 @@ import * as _ from 'lodash'
             e.addSearchKey('a', 'testAddSearchKey123')
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testAddSearchKey123');
+            return EntityBaseTest.collection.findByKey('a', 'testAddSearchKey123');
         }).then((es) => {
             if (es.length != 1) {
                 throw new Error("entity was not updated")
@@ -156,7 +156,7 @@ import * as _ from 'lodash'
             if (_.keys(e.search_keys_ref).legnth > 0) {
                 throw new Error("Error removing search key");
             }
-            return EntityBaseTest.collection.findByKey('testRemoveSearchKeyAndSave');
+            return EntityBaseTest.collection.findByKey('number', 'testRemoveSearchKeyAndSave');
         }).then((es) => {
             if (es.length != 0)  {
                 throw new Error("search key was not removed")
@@ -172,7 +172,7 @@ import * as _ from 'lodash'
             e.addSearchKey('a', 'testAddSearchKeyAndRollback123')
             return e.rollback();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testAddSearchKeyAndRollback123');
+            return EntityBaseTest.collection.findByKey('a', 'testAddSearchKeyAndRollback123');
         }).then((es) => {
             if (es.length != 0) {
                 throw new Error("entity was added unexpectedly")
@@ -187,7 +187,7 @@ import * as _ from 'lodash'
             e.addBucket('my-store', { b : "v"});
             return e.rollback();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testAddDecoratorAndRollback');
+            return EntityBaseTest.collection.findByKey('number', 'testAddDecoratorAndRollback');
         }).then((es) => {
             if (es.length != 1 || _.values(es[0].buckets).length != 0) {
                 throw new Error("entity was decorated")
@@ -205,7 +205,7 @@ import * as _ from 'lodash'
             }
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testAddManyDecoratorsAndSave1');
+            return EntityBaseTest.collection.findByKey('v1', 'testAddManyDecoratorsAndSave1');
         }).then((es) => {
             if (es.length != 1 || _.values(es[0].buckets).length != 5) {
                 throw new Error("entity was decorated")
@@ -225,7 +225,7 @@ import * as _ from 'lodash'
             }
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey('testAddThenUpdate');
+            return EntityBaseTest.collection.findByKey('v', 'testAddThenUpdate');
         }).then((es) => {
             if (es.length != 1 ||  _.values(es[0].buckets)[0].b != "testAddThenUpdate11") {
                 throw new Error("entity was decorated")
@@ -328,7 +328,7 @@ import * as _ from 'lodash'
             e.removeSearchKey("b");
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey("testAddThenRemoveSearchKey");
+            return EntityBaseTest.collection.findByKey('b', "testAddThenRemoveSearchKey");
         }).then((e) => {
             if (e.length) {
                 throw new Error("key should not be saved");
@@ -344,7 +344,7 @@ import * as _ from 'lodash'
             e.addSearchKey('v', "testRemoveThenAddExistingSearchKey");
             return e.save();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey("testRemoveThenAddExistingSearchKey");
+            return EntityBaseTest.collection.findByKey('v', "testRemoveThenAddExistingSearchKey");
         }).then((e) => {
             if (e.length != 1) {
                 throw new Error("key should not be saved");
@@ -359,7 +359,7 @@ import * as _ from 'lodash'
             e.removeSearchKey('v');
             return e.rollback();
         }).then((e) => {
-            return EntityBaseTest.collection.findByKey("testRemoveSearchThenRollback");
+            return EntityBaseTest.collection.findByKey('v', "testRemoveSearchThenRollback");
         }).then((e) => {
             if (e.length != 1) {
                 throw new Error("key should not be removed");

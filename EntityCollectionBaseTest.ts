@@ -53,8 +53,8 @@ import * as _ from 'lodash'
     testInsertBasic2(done: Function) {
         let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'b' }]).then((d) => {
-            let ref = "post/b/" + d.core.index;
-            if (d.search_keys_ref['b'].ref != ref) {
+            let ref = "post/a/b/" + d.core.index;
+            if (d.search_keys_ref['a/b'].ref != ref) {
                 throw new Error("missing ref");
             }
             return EntityCollectionBaseTest.db.get(ref);
@@ -121,7 +121,7 @@ import * as _ from 'lodash'
         let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
         collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', val : 'special' }]).then((d) => {
             let id = d.core.index;
-            return collection.findByKey('special');
+            return collection.findByKey('a', 'special');
         }).then((d) => {
             if (d.length != 1) {
                 throw new Error("couldn't find the right doc")
@@ -140,7 +140,7 @@ import * as _ from 'lodash'
             ps.push(p);
         }
         Promise.all(ps).then((d) => {
-            return collection.findByKey('special789');
+            return collection.findByKey('a', 'special789');
         }).then((entities) => {
 
             if (entities.length != 1 || entities[0].core.a != "b789"  ) {
@@ -163,7 +163,7 @@ import * as _ from 'lodash'
             ps.push(p);
         }
         Promise.all(ps).then((d) => {
-            return collection.findByKey('testStartsWith1', true);
+            return collection.findByKey('a', 'testStartsWith1', {startsWith : true});
         }).then((entities) => {
             if (entities.length != 10 || !entities[0].core.a.startsWith('b1') ) {
                 var error = new Error("entity not found");
@@ -185,7 +185,7 @@ import * as _ from 'lodash'
             ps.push(p);
         }
         Promise.all(ps).then((d) => {
-            return collection.findByKey('special9999');
+            return collection.findByKey('a', 'special9999');
         }).then((entities) => {
             if (entities.length == 0) {
                 done();
@@ -208,7 +208,7 @@ import * as _ from 'lodash'
             ps.push(p);
         }
         Promise.all(ps).then((d) => {
-            return collection.findByKey('testSimilarDocs030');
+            return collection.findByKey('a', 'testSimilarDocs030');
         }).then((entities) => {
             if (entities.length != 2) {
                 throw new Error("error in finding similar docs")
@@ -227,7 +227,7 @@ import * as _ from 'lodash'
             ps.push(p);
         }
         Promise.all(ps).then((ds) => {
-            return collection.findByKey('testInsertRemove', true);
+            return collection.findByKey('a', 'testInsertRemove', {startsWith: true});
         }).then((es) => {
             if (es.length != 100) {
                 throw new Error ("not all instances removed")
@@ -238,7 +238,7 @@ import * as _ from 'lodash'
             }
             return Promise.all(ps);
         }).then((ps) => {
-            return collection.findByKey('testInsertRemove', true);
+            return collection.findByKey('a', 'testInsertRemove', { startsWith: true});
         }).then((es) => {
             if (es.length > 0) {
                 throw new Error ("not all instances removed")
@@ -260,13 +260,13 @@ import * as _ from 'lodash'
             }
             let keys = [];  
             for (var j=0;j<Math.random()*10;j++) {
-                keys.push({ key : 'a' + j, val : 'testInsertSeveralDecorators' + s + "-" + j});
+                keys.push({ key : 'a', val : 'testInsertSeveralDecorators' + s + "-" + j});
             }
             let p = collection.insert({ a: "b" + s }, stores, keys)
             ps.push(p);
         }
         Promise.all(ps).then((d) => {
-            return collection.findByKey('testInsertSeveralDecorators', true);
+            return collection.findByKey('a', 'testInsertSeveralDecorators', {startsWith : true});
         }).then((es) => {
             if (es.length != 100) {
                 console.log(es.length)
