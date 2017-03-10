@@ -1,18 +1,18 @@
 # @Pouchable
-PouchDB empowered by TypeScript
+PouchDB simplified by TypeScript's Decorators (annotations)
 
 <pre>
 npm install pouchdb pouchable --save
 </pre>
 
 Include the followings in your project
-<pre>
-import { Entity, EntityField, Collection } from 'pouchable'
+```typescript
 import * as PouchDB from 'pouchdb';
-</pre>
+import { Entity, EntityField, Collection } from 'pouchable'
+```
 
 Declare your Entity by using decortors!
-<pre>
+```typescript
 /**
  * Posts 
  */
@@ -40,19 +40,19 @@ class Post extends Entity {
     })
     content: string;
 }
-</pre>
+```
 
 Declare your collections
-<pre>
+```typescript
 class Posts extends Collection<Post> {
     public getName(): string {
         return "posts";
     }
 }
-</pre>
+```
 
 You are ready to work with Pouchable:
-<pre>
+```typescript
 let db = new PouchDB("default");
 let posts = new Posts(db, Post);
 
@@ -62,16 +62,16 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
    }
    console.log(p.title);
 }).catch(() => {});
-</pre>
+```
 
 # What API is available? 
 
- <pre>
+```typescript
  posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then().catch(); 
  users.update(u, { street : "23 e 47th, New York, NY"} ).then().catch(); 
  users.get("_user_id").then().catch(); 
  users.remove(u);
  users.find("title", "search title", { startsWith : true });
- </pre>
+```
 
 
