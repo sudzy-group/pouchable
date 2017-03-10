@@ -75,5 +75,7 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
  users.remove(u);
  users.find("title", "search title", { startsWith : true });
 ```
-
+# How Pouchable works under the hood?
+![Image of Entity]
+(https://sudzy-group.github.io/pouchable/resources/pouchable_entity.png)
 
