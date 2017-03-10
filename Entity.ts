@@ -1,7 +1,7 @@
 /**
  * Represents each entity in the system, wrapper of EntityBase
  */
-import { map } from 'lodash';
+import { map, forIn } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { Collection } from './Collection'
 
@@ -11,9 +11,9 @@ import { Collection } from './Collection'
 export class Entity  {
 
     /**
-     * the basic entity
+     * the basic entity, should not be used by implementors
      */
-    protected _base : EntityBase;
+    public _base : EntityBase;
 
     constructor(base: EntityBase) {
         this._base = base;
@@ -40,4 +40,17 @@ export class Entity  {
         return md.mandatory ? this._base.core[key] : this._base.buckets[md.group][key];
     }
 
+    public updateBuckets(buckets) : Promise<Entity> {
+        return new Promise((resolved, rejected) => {
+            let t = this;
+            forIn(buckets, (bucket, name) => {
+                this._base.updateBucket(name, bucket);
+            })
+            this._base.save().then((e) => {
+                return resolved(t)
+            }).catch((m) => {
+                return rejected(m);
+            })
+        })
+    }
 }

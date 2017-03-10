@@ -1,7 +1,7 @@
 import * as PouchDB from 'pouchdb';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
-import { EntityCollectionBase } from './EntityCollectionBase';
-import { EntityBase } from './EntityBase';
+import { EntityCollectionBase } from '../EntityCollectionBase';
+import { EntityBase } from '../EntityBase';
 import * as _ from 'lodash'
 
 @suite class EntityBaseTest {

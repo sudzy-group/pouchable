@@ -33,7 +33,7 @@ export abstract class Collection<T extends Entity> {
     public insert(data) : Promise<T> { 
         return new Promise((resolved, rejected)=> {
             let c = this._resolveCore(data);
-            let b = this._resolveBuckets(data);
+            let b = values(this._resolveBuckets(data));
             let sks = this._resolveSearchKeys(data);
             this._collectionBase.insert(c, b, sks).then((eb) => {
                 return resolved(new this._ctor(eb));
@@ -43,6 +43,10 @@ export abstract class Collection<T extends Entity> {
         })
     }
 
+    /**
+     * Get entity by its id
+     * @param id 
+     */
     public get(id) : Promise<T> { 
         return new Promise((resolved, rejected)=> {
             this._collectionBase.getById(id).then((eb) => {
@@ -53,6 +57,12 @@ export abstract class Collection<T extends Entity> {
         })
     }    
 
+    /**
+     * Find entity by key/value. 
+     * @param key 
+     * @param value 
+     * @param options 
+     */
     public find(key, value, options?) : Promise<T[]> { 
         return new Promise((resolved, rejected)=> {
             let t = this;
@@ -62,10 +72,40 @@ export abstract class Collection<T extends Entity> {
                 return rejected(m)
             });
         })
-    }  
+    } 
 
-
-     private _resolveCore(data) {
+    /**
+     * Find entity by key/value. 
+     * @param key 
+     * @param value 
+     * @param options 
+     */
+    public update(entity : Entity, data) : Promise<T> { 
+        return new Promise((resolved, rejected)=> {
+            let bs = this._resolveBuckets(data);
+            return entity.updateBuckets(bs).then((t) => {
+                return resolved(t)
+            }).catch((m) => {
+                return rejected(m);
+            });
+        })
+    } 
+    
+    /**
+     * Remove entity
+     * @param entity 
+     */
+    public remove(entity : Entity) : Promise<T> { 
+        return new Promise((resolved, rejected)=> {
+            this._collectionBase.remove(entity._base).then((t) => {
+                return resolved(entity)
+            }).catch((m) => {
+                return rejected(m);
+            });
+        })
+    } 
+        
+    private _resolveCore(data) {
         let md = this._ctor.prototype.metadata;
         let result = {};
         forIn(data, (value, key) => {
@@ -92,12 +132,15 @@ export abstract class Collection<T extends Entity> {
         let md = this._ctor.prototype.metadata;
         let result = {};
         forIn(data, (value, key) => {
+            if (!md[key]) {
+                throw new Error("cannot resolve key " + key);
+            }
             if (!md[key].mandatory) {
                 let g = md[key].group;
                 (result[g] || (result[g] = { store: g}))[key] = value;
             }
         })
-        return values(result);
+        return result;
      }
 
      private _resolveSearchKeys(data): any[] {
@@ -115,7 +158,4 @@ export abstract class Collection<T extends Entity> {
         })
         return result;
      }
-
-
-
 }

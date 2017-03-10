@@ -1,10 +1,11 @@
-import { EntityField } from './EntityField';
-import { Entity } from './Entity';
-import { EntityBase } from './EntityBase';
-import { Collection } from './Collection';
+import { EntityField } from '../EntityField';
+import { Entity } from '../Entity';
+import { EntityBase } from '../EntityBase';
+import { Collection } from '../Collection';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import * as PouchDB from 'pouchdb';
 import * as _ from 'lodash';
+import { padStart } from 'lodash';
 
 @suite class CollectionTest {
 
@@ -77,7 +78,7 @@ import * as _ from 'lodash';
     }
 
     @test ("insert doc with buckets should return entity")
-    testInsertDocCore(done: Function) {
+    testGetEntityById(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
             return users.get(p.id);
@@ -103,6 +104,109 @@ import * as _ from 'lodash';
             console.log(m)
         });
     }    
+
+    @test ("update value basic")
+    testUpdateBasic(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490561", street : "Orchard St."}).then((p) => {
+            return users.update(p, { street : "23 e 109th"} );
+        }).then((p) => {
+            return users.get(p.id);
+        }).then((p) => {
+            if (p.street != "23 e 109th") {
+                throw new Error("not updated as expected")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }  
+
+    @test ("update missing key / value basic - should raise error")
+    testUpdateBasicFailure(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490561", street : "Orchard St."}).then((p) => {
+            return users.update(p, { missing_key : "value"} );
+        }).then(_.noop).catch(() => done());
+    }  
+
+    @test ("remove entity")
+    testRemoveEntity(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490561", street : "Orchard St."}).then((p) => {
+            return users.remove(p);
+        }).then((p) => {
+            return users.get(p.id);
+        }).then((p) => {
+            console.log(p);
+        }).catch((m) => {
+            done();
+        });
+    }    
+
+    @test ("test performance + remove") @timeout(10000)
+    testPerformanceRemove(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+
+        let us = [];
+        for (let i=0;i<999;i++) {
+            let pad = padStart(i.toString(), 3, "0");
+            us.push(users.insert({ name: "user " + pad, mobile : "6465490" + pad, street : "Orchard St.", street_num: pad}));
+        }
+        Promise.all(us).then((u) => {
+            return users.find('mobile', '64654904', { startsWith : true });
+        }).then((us) => {
+            if (!us || us.length != 100) {
+                throw new Error("couldn't find 100 docs");
+            }
+            var ps = [];
+            for (let u of us) {
+                ps.push(users.remove(u));
+            }
+            return Promise.all(ps);
+        }).then((us) => {
+            return users.find('mobile', '64654904', { startsWith : true });
+        }).then((us) => {           
+            if (!us || us.length != 0) {
+                throw new Error("removed failed");
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }   
+
+    @test ("test performance + update") @timeout(10000)
+    testPerformanceUpdate(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+
+        let us = [];
+        for (let i=0;i<999;i++) {
+            let pad = padStart(i.toString(), 3, "0");
+            us.push(users.insert({ name: "user " + pad, mobile : "6465490" + pad, street : "Orchard St.", street_num: pad}));
+        }
+        Promise.all(us).then((u) => {
+            return users.find('mobile', '64654904', { startsWith : true });
+        }).then((us) => {
+            if (!us || us.length != 100) {
+                throw new Error("couldn't find 100 docs");
+            }
+            var ps = [];
+            for (let u of us) {
+                ps.push(users.update(u, {street_num : "1"}));
+            }
+            return Promise.all(ps);
+        }).then((us) => {
+            return users.find('mobile', '64654904', { startsWith : true });
+        }).then((us) => {           
+            if (!us || us.length != 100 && us[0].street_num != "1") {
+                throw new Error("removed failed");
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }        
 }
 
 /**
@@ -177,4 +281,3 @@ class Users extends Collection<User> {
     }
 
 }
-

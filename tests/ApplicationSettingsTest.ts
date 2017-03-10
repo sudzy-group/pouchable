@@ -1,6 +1,6 @@
 import * as PouchDB from 'pouchdb';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
-import { ApplicationSettings } from './ApplicationSettings';
+import { ApplicationSettings } from '../ApplicationSettings';
 import * as _ from 'lodash';
 
 
