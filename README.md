@@ -87,3 +87,9 @@ Contribution is more than welcome!
 npm install
 npm test
 </pre>
+
+## Topics to enhance
+* Data validation when assigning values to fields (see @EntityField)
+* Schema documentation generation
+* Search keys with multiple properties
+* Default value
