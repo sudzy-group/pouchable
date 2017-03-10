@@ -36,6 +36,12 @@ import { padStart } from 'lodash';
         }).catch(_.noop);
     }
 
+    @test ("insert doc with invalid field value")
+    testInsertDocInvalidField(done: Function) {
+        let posts = new Posts(CollectionTest.db, Post);
+        posts.insert({ title: 7}).then(_.noop).catch(()=>done());
+    }
+
     @test ("missing mandatory insert doc should return failure")
     testInsertErrorCore(done: Function) {
         let posts = new Posts(CollectionTest.db, Post);
@@ -60,6 +66,20 @@ import { padStart } from 'lodash';
         users.insert({ name: "New One", mobile : "6465490560", bla: "Bla"}).then(_.noop).catch(() => done());
     }    
 
+    @test ("invalid fields in buckets results in failure")
+    testInvalidFieldsInBuckets(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490560", street_num: 5}).then(_.noop).catch(() => done());
+    }    
+
+    @test ("update with invalid field value")
+    testUpdateWithInvalidValue(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490561", street : "Orchard St."}).then((u) => {
+            return users.update(u, { street_num : 7} );
+        }).then(_.noop).catch((m) => done());
+    }
+
     @test ("missing mandatory should return failure")
     testInsertErrorMissingCore(done: Function) {
         let users = new Users(CollectionTest.db, User);
@@ -77,7 +97,7 @@ import { padStart } from 'lodash';
         }).catch(_.noop);
     }
 
-    @test ("insert doc with buckets should return entity")
+    @test ("get by id after inserted doc should return entity")
     testGetEntityById(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
@@ -93,8 +113,8 @@ import { padStart } from 'lodash';
     @test ("find by key value")
     testFindByKeyVal(done: Function) {
         let users = new Users(CollectionTest.db, User);
-        users.insert({ name: "New One", mobile : "6465490561", street : "Orchard St."}).then((p) => {
-            return users.find('mobile', '0561');
+        users.insert({ name: "New One", mobile : "6465490562", street : "Orchard St."}).then((p) => {
+            return users.find('mobile', '0562');
         }).then((ps) => {
             if (!ps || ps.length != 1 || ps[0].street != "Orchard St.") {
                 throw new Error("couldn't find p or the data");
@@ -217,7 +237,8 @@ class Post extends Entity {
     @EntityField({
         mandatory: true,
         group: "default",
-        name: "title"
+        name: "title",
+        validate: (v) => { return _.isString(v) && v.length < 50}
     })
     title: string;
 
@@ -240,7 +261,8 @@ class User extends Entity {
         mandatory: true,
         group: "default",
         name: "mobile",
-        search_by: ["lastFourDigits", _.identity]
+        search_by: ["lastFourDigits", _.identity],
+        validate : "testString"
     })
     mobile: string;
 
@@ -255,7 +277,8 @@ class User extends Entity {
         mandatory: false,
         group: "address",
         name: "street",
-        description: "User's street"
+        description: "User's street",
+        validate : "testString"       
     })
     street: string;
 
@@ -263,7 +286,9 @@ class User extends Entity {
         mandatory: false,
         group: "address",
         name: "street_num",
-        description: "street number"
+        description: "street number",
+        validate : (v) => { return _.isString(v) && v.length < 50}
+
     })
     street_num: string;
 
@@ -271,6 +296,10 @@ class User extends Entity {
     protected lastFourDigits(mobile) {
         return mobile.substr(-4);
     }
+
+    protected testString(v) {
+        return _.isString(v);
+    } 
 
 }
 

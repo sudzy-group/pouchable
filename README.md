@@ -4,7 +4,6 @@ PouchDB simplified by TypeScript Decorators (annotations)
 [![Build Status](https://travis-ci.org/sudzy-group/pouchable.svg?branch=master)](https://travis-ci.org/sudzy-group/pouchable)
 [![Join the chat at https://gitter.im/pouchable](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pouchable?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-
 <pre>
 npm install pouchdb pouchable --save
 </pre>
@@ -40,7 +39,8 @@ class Post extends Entity {
     @EntityField({
         mandatory: false,
         group: "info",
-        name: "content"
+        name: "content",
+        validate: (v) => { return v.length < 140 } 
     })
     content: string;
 }
@@ -89,7 +89,7 @@ npm test
 </pre>
 
 ## Topics to enhance
-* Data validation when assigning values to fields (see @EntityField)
 * Schema documentation generation
 * Search keys with multiple properties
 * Default value
+* Error handling when partial update happens

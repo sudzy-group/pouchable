@@ -2,7 +2,7 @@
  * Represents a resource collection in the system
  */
 import * as PouchDB from 'pouchdb';
-import { map, forIn, keys, values, isFunction } from 'lodash';
+import { map, forIn, keys, values, isFunction, isUndefined } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
@@ -108,14 +108,27 @@ export abstract class Collection<T extends Entity> {
     private _resolveCore(data) {
         let md = this._ctor.prototype.metadata;
         let result = {};
+        let t = this;
         forIn(data, (value, key) => {
-            if (!md[key]) {
+            let mk = md[key];
+            if (!mk) {
                 throw new Error("missing definition for " + key);
             }
-            if (md[key].mandatory) {
+            if (mk.mandatory) {
+
+                // validate value 
+                let f = mk.validate;
+                let isValid = isFunction(f)? f(value) : (isUndefined(f) || t._ctor.prototype[f](value));
+                if (!isValid) {
+                    throw new Error("Error assigning key " + key + " to value " + value);
+                }
+
+                // assign key / value to core 
                 result[key] = value;
             }
         })
+
+        // makes sure all mandatory fields were assigned
         let c = 0;
         forIn(md, (md) => {
             if (md.mandatory) {
@@ -131,12 +144,21 @@ export abstract class Collection<T extends Entity> {
      private _resolveBuckets(data) {
         let md = this._ctor.prototype.metadata;
         let result = {};
+        let t = this;
         forIn(data, (value, key) => {
-            if (!md[key]) {
+            let mk = md[key];
+            if (!mk) {
                 throw new Error("cannot resolve key " + key);
             }
-            if (!md[key].mandatory) {
-                let g = md[key].group;
+            if (!mk.mandatory) {
+                // validate value 
+                let f = mk.validate;
+                let isValid = isFunction(f)? f(value) : (isUndefined(f) || t._ctor.prototype[f](value));
+                if (!isValid) {
+                    throw new Error("Error assigning key " + key + " to value " + value);
+                }
+
+                let g = mk.group;
                 (result[g] || (result[g] = { store: g}))[key] = value;
             }
         })
