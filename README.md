@@ -1,5 +1,7 @@
 # @Pouchable
-PouchDB simplified by TypeScript's Decorators (annotations)
+PouchDB simplified by TypeScript Decorators (annotations)
+
+[![Build Status](https://travis-ci.org/sudzy-group/pouchable.svg?branch=master)](https://travis-ci.org/sudzy-group/pouchable)
 
 <pre>
 npm install pouchdb pouchable --save
@@ -11,7 +13,7 @@ import * as PouchDB from 'pouchdb';
 import { Entity, EntityField, Collection } from 'pouchable'
 ```
 
-Declare your Entity by using decortors!
+Declare your Entity
 ```typescript
 /**
  * Posts 
@@ -42,7 +44,7 @@ class Post extends Entity {
 }
 ```
 
-Declare your collections
+Declare your collection:
 ```typescript
 class Posts extends Collection<Post> {
     public getName(): string {
@@ -51,7 +53,7 @@ class Posts extends Collection<Post> {
 }
 ```
 
-You are ready to work with Pouchable:
+Pouchable and PouchDB at your service:
 ```typescript
 let db = new PouchDB("default");
 let posts = new Posts(db, Post);
