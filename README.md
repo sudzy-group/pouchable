@@ -81,7 +81,7 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
 ![Image of Entity]
 (https://raw.githubusercontent.com/sudzy-group/pouchable/master/resources/pouchable_entity.png)
 
-# Contributing
+# Contributing to Pouchable
 Contribution is more than welcome! 
 <pre>
 npm install
