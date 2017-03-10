@@ -21,7 +21,8 @@ class Post extends Entity {
     @EntityField({
         mandatory: true,
         group: "default",
-        name: "title"
+        name: "title",
+        search_by: [ _.identity ] // need lodash
     })
     title: string;
 
@@ -62,3 +63,14 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
    console.log(p.title);
 }).catch(() => {});
 </pre>
+
+# What API is available with Pouchable? 
+
+ <pre>
+ users.update(u, { street : "23 e 47th, New York, NY"} ).then().catch(); 
+ users.get("_user_id").then().catch(); 
+ users.remove(u);
+ users.find("title", "search title", { startsWith : true });
+ </pre>
+
+
