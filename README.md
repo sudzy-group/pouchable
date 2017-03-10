@@ -51,7 +51,7 @@ class Posts extends Collection<Post> {
 }
 ```
 
-Pouchable at your service:
+Pouchable and PouchDB at your service:
 ```typescript
 let db = new PouchDB("default");
 let posts = new Posts(db, Post);
