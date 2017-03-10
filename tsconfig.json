@@ -8,7 +8,6 @@
         "sourceMap": true,
         "preserveConstEnums": true,
         "declaration": true,
-        "watch": true,
         "outDir": "build"
     },
     "typeRoots": [

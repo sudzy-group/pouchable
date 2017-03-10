@@ -44,7 +44,7 @@ import { padStart } from 'lodash';
     }
 
     @test ("insert doc should return entity")
-    testInsertDocCore(done: Function) {
+    testInsertDocCoreOnly(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490560"}).then((p) => {
             if (p.mobile != "6465490560") {
