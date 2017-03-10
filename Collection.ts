@@ -3,7 +3,7 @@ import { isFunction } from 'rxjs/util/isFunction';
  * Represents a resource collection in the system
  */
 import * as PouchDB from 'pouchdb';
-import { map, forIn, keys } from 'lodash';
+import { map, forIn, keys, values } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
@@ -34,14 +34,25 @@ export abstract class Collection<T extends Entity> {
     public insert(data) : Promise<T> { 
         return new Promise((resolved, rejected)=> {
             let c = this._resolveCore(data);
+            let b = this._resolveBuckets(data);
             let sks = this._resolveSearchKeys(data);
-            this._collectionBase.insert(c, undefined, sks).then((eb) => {
+            this._collectionBase.insert(c, b, sks).then((eb) => {
                 return resolved(new this._ctor(eb));
             }).catch((m) => {
                 return rejected(m)
             });
         })
     }
+
+    public get(id) : Promise<T> { 
+        return new Promise((resolved, rejected)=> {
+            this._collectionBase.getById(id).then((eb) => {
+                return resolved(new this._ctor(eb));
+            }).catch((m) => {
+                return rejected(m)
+            });
+        })
+    }    
 
      private _resolveCore(data) {
         let md = this._ctor.prototype.metadata;
@@ -60,10 +71,22 @@ export abstract class Collection<T extends Entity> {
                 c++
             }
         })
-        if (c != keys(data).length) {
+        if (c != keys(result).length) {
             throw new Error("missing mandatory");
         }
         return result;
+     }
+
+     private _resolveBuckets(data) {
+        let md = this._ctor.prototype.metadata;
+        let result = {};
+        forIn(data, (value, key) => {
+            if (!md[key].mandatory) {
+                let g = md[key].group;
+                (result[g] || (result[g] = { store: g}))[key] = value;
+            }
+        })
+        return values(result);
      }
 
      private _resolveSearchKeys(data): any[] {

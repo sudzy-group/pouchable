@@ -48,18 +48,18 @@ export class EntityCollectionBase {
     /**
      * Insert a new entity
      */
-    insert(core, decorators?: any[], keys? : any[]) : Promise<EntityBase> {
+    insert(core, buckets?: any[], keys? : any[]) : Promise<EntityBase> {
 
         return new Promise((resolved, rejected) => {
             // generate id
             let id = this._idGenerator.get();
             let e_core = this._resolveCore(core, id);
-            let e_decorators = decorators ? this._resolveDecorators(decorators, id) : {};
+            let e_buckets = buckets ? this._resolveBuckets(buckets, id) : {};
             let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : {};
             let search_keys = keys ? this._resolveSearchKeys(keys, id) : [];
 
-            let e = new EntityBase(this, id, e_core, e_decorators, e_search_keys_ref);
-            var all = compact(concat(e_core, values(e_decorators), values(e_search_keys_ref), search_keys));
+            let e = new EntityBase(this, id, e_core, e_buckets, e_search_keys_ref);
+            var all = compact(concat(e_core, values(e_buckets), values(e_search_keys_ref), search_keys));
             this._db.bulkDocs(all).then((ds) => {
                 e.resolveRevs(ds);
                 return resolved(e);
@@ -73,7 +73,7 @@ export class EntityCollectionBase {
     remove(entity) {
         return new Promise((resolved, rejected) => {
             if (keys(entity.search_keys_ref).length == 0) {
-                let all = compact(concat(entity.core, values(entity.decorators)));
+                let all = compact(concat(entity.core, values(entity.buckets)));
                 return this._removeEntityDocs(all, resolved, rejected, entity)
             }
 
@@ -84,7 +84,7 @@ export class EntityCollectionBase {
             }
 
             return Promise.all(ps).then((docs) => {
-                let all = compact(concat(entity.core, values(entity.decorators), values(entity.searchKeys), docs));
+                let all = compact(concat(entity.core, values(entity.buckets), values(entity.searchKeys), docs));
                 return this._removeEntityDocs(all, resolved, rejected, entity)
             })
         })
@@ -148,7 +148,7 @@ export class EntityCollectionBase {
 
     _createEntityFromDocs(docs, key, id) {
         let core = null;
-        let decorators = {};
+        let buckets = {};
         let search_keys_ref = {};
         for (let result of docs.rows) {
             if (result.doc._id == key) {
@@ -156,10 +156,10 @@ export class EntityCollectionBase {
             } else if (startsWith(result.doc._id, key + 'sk')) {
                 search_keys_ref[result.doc._id.substr(key.length + 4)] = result.doc;
             } else {
-                decorators[result.doc.store] = result.doc;
+                buckets[result.doc.store] = result.doc;
             }
         }
-        return new EntityBase(this, id, core, decorators, search_keys_ref);
+        return new EntityBase(this, id, core, buckets, search_keys_ref);
     }
 
     _resolveCore(core, id) {
@@ -172,14 +172,14 @@ export class EntityCollectionBase {
         return core;
     }
 
-    _resolveDecorators(decorators, id) {
+    _resolveBuckets(buckets, id) {
         let result = {};
-        for (let decorator of decorators) {
-            if (!decorator.store) {
+        for (let bucket of buckets) {
+            if (!bucket.store) {
                 throw new Error("Unable to decorate with empty store.");
             }
-            decorator._id = this.prefix + id + '/' + decorator.store;
-            result[decorator.store] = decorator;
+            bucket._id = this.prefix + id + '/' + bucket.store;
+            result[bucket.store] = bucket;
         }
         return result;
     }

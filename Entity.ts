@@ -27,13 +27,17 @@ export class Entity  {
         return this.metadata[key];
     }
 
+    get id() {
+        return this._base.core.index;
+    }
+
     /**
      * Get the value of the property 
      * @param key 
      */
     protected getValue(key) {
         let md = this.getMetadata(key);
-        return md.mandatory ? this._base.core[key] : undefined;
+        return md.mandatory ? this._base.core[key] : this._base.buckets[md.group][key];
     }
 
 }

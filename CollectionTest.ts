@@ -46,6 +46,9 @@ import * as _ from 'lodash';
     testInsertDocCore(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490560"}).then((p) => {
+            if (p.mobile != "6465490560") {
+                throw new Error("error getting mobile");
+            }
             done();
         }).catch(_.noop);
     }
@@ -60,7 +63,33 @@ import * as _ from 'lodash';
     testInsertErrorMissingCore(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({  mobile : "6465490560" }).then(_.noop).catch(() => done());
-    }    
+    }   
+
+    @test ("insert doc with buckets should return entity")
+    testInsertDocCore(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St.", street_num : "199"}).then((p) => {
+            if (p.street_num != "199") {
+                throw new Error("error getting street number");
+            }
+            done();
+        }).catch(_.noop);
+    }
+
+    @test ("insert doc with buckets should return entity")
+    testInsertDocCore(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490560"}).then((p) => {
+            return users.get(p.id);
+        }).then((p) => {
+            if (!p) {
+                throw new Error("couldn't found p");
+            }
+            done();
+        }).catch(_.noop);
+    }
+
+
 
 }
 
@@ -113,6 +142,15 @@ class User extends Entity {
         description: "User's street"
     })
     street: string;
+
+    @EntityField({
+        mandatory: false,
+        group: "address",
+        name: "street_num",
+        description: "street number"
+    })
+    street_num: string;
+
 
     protected lastFourDigits(mobile) {
         return mobile.substr(-4);
