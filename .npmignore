@@ -5,5 +5,5 @@ npm-debug.log
 Thumbs.db
 .DS_Store
 # Ignored files
-*.ts
-!*.d.ts
+src/*.ts
+!src/*.d.ts

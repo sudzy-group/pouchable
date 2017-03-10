@@ -1,6 +1,7 @@
 # VSCode
 .vscode
 # Node generated files
+build
 node_modules
 npm-debug.log
 # code coverage results
