@@ -64,9 +64,10 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
 }).catch(() => {});
 </pre>
 
-# What API is available with Pouchable? 
+# What API is available? 
 
  <pre>
+ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then().catch(); 
  users.update(u, { street : "23 e 47th, New York, NY"} ).then().catch(); 
  users.get("_user_id").then().catch(); 
  users.remove(u);
