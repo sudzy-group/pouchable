@@ -1,7 +1,7 @@
-import { EntityField } from '../EntityField';
-import { Entity } from '../Entity';
-import { EntityBase } from '../EntityBase';
-import { Collection } from '../Collection';
+import { EntityField } from '../src/EntityField';
+import { Entity } from '../src/Entity';
+import { EntityBase } from '../src/EntityBase';
+import { Collection } from '../src/Collection';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import * as PouchDB from 'pouchdb';
 import * as _ from 'lodash';

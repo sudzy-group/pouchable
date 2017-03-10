@@ -1,7 +1,7 @@
 import * as PouchDB from 'pouchdb';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
-import { ApplicationSettings } from '../ApplicationSettings';
-import { AutoIncrementGenerator } from '../AutoIncrementGenerator';
+import { ApplicationSettings } from '../src/ApplicationSettings';
+import { AutoIncrementGenerator } from '../src/AutoIncrementGenerator';
 
 import * as _ from 'lodash';
 
