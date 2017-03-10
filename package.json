@@ -4,7 +4,7 @@
   "description": "PouchDB wrapped for TypeScript lovers",
   "main": "./build/src/index.js",
   "scripts": {
-    "test": "node_modules/.bin/mocha \"./build/tests/*.js\""
+    "test": "tsc;node_modules/.bin/mocha \"./build/tests/*.js\""
   },
   "author": "Roy Ganor <ganoro@gmail.com> (http://ganoro.blogspot.com/)",
   "license": "ISC",
