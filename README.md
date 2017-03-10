@@ -1,6 +1,8 @@
 # @Pouchable
 PouchDB simplified by TypeScript Decorators (annotations)
 
+[![Build Status](https://travis-ci.org/sudzy-group/pouchable.svg?branch=master)](https://travis-ci.org/sudzy-group/pouchable)
+
 <pre>
 npm install pouchdb pouchable --save
 </pre>
