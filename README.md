@@ -24,22 +24,22 @@ Declare your Entity
 class Post extends Entity {
 
     @EntityField({
+        group: "default",
         name: "title",   
         mandatory: true,
-        group: "default",
         search_by: [ _.identity ] // need lodash
     })
     title: string;
 
     @EntityField({
-        name: "author",    
-        group: "info"
+        group: "info",
+        name: "author"
     })
     author: string;
 
     @EntityField({
-        name: "content",
         group: "info",
+        name: "content",
         validate: (v) => { return v.length < 140 } 
     })
     content: string;
@@ -49,7 +49,7 @@ class Post extends Entity {
 Declare your collection:
 ```typescript
 class Posts extends Collection<Post> {
-    public getName(): string {
+    public getPrefix(): string {
         return "posts";
     }
 }
