@@ -246,7 +246,7 @@ class Post extends Entity {
 
 class Posts extends Collection<Post> {
     
-    public getName(): string {
+    public getPrefix(): string {
         return "posts";
     }
 
@@ -305,7 +305,7 @@ class User extends Entity {
 
 class Users extends Collection<User> {
     
-    public getName(): string {
+    public getPrefix(): string {
         return "users";
     }
 

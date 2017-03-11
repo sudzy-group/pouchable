@@ -11,7 +11,7 @@ import { Entity } from './Entity';
 /**
  * Base class of the different resources in the system
  */
-export abstract class Collection<T extends Entity> {
+export class Collection<T extends Entity> {
     
     /** collection specific */
     // base collection reference
@@ -20,15 +20,20 @@ export abstract class Collection<T extends Entity> {
     // helper constructor of the entity
     private _ctor: EntityConstructor<T>;
 
+    private _prefix;
+
     public constructor(db: PouchDB, ctor: EntityConstructor<T>) {
+        this._prefix = ctor.name;
         this._ctor = ctor;
-        this._collectionBase = new EntityCollectionBase(this.getName(), db);
+        this._collectionBase = new EntityCollectionBase(this.getPrefix(), db);
     }
     
     /**
      * The name of the collection
      */
-    public abstract getName() : string;
+    public getPrefix() : string {
+        return this._prefix;
+    }
 
     public insert(data) : Promise<T> { 
         return new Promise((resolved, rejected)=> {

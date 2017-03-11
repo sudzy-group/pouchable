@@ -1,19 +1,19 @@
 import { Entity } from './Entity';
 import { ApplicationSettings } from './ApplicationSettings';
-import { Collection } from './Collection';
 import { DateIdGenerator } from './DateIdGenerator';
 import { EntityBase } from './EntityBase';
 import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
 import { EntityField } from './EntityField';
 import { IdGenerator } from './IdGenerator';
+import { Collection } from './Collection';
 
 export { Entity } from './Entity';
 export { ApplicationSettings } from './ApplicationSettings';
-export { Collection } from './Collection';
 export { DateIdGenerator } from './DateIdGenerator';
 export { EntityBase } from './EntityBase';
 export { EntityCollectionBase } from './EntityCollectionBase';
 export { EntityConstructor } from './EntityConstructor';
 export { EntityField } from './EntityField';
 export { IdGenerator } from './IdGenerator';
+export { Collection } from './Collection';
