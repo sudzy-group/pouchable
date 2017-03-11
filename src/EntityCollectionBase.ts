@@ -35,7 +35,7 @@ export class EntityCollectionBase {
      */
     protected _idGenerator: IdGenerator;
 
-    constructor(type: string, db: PouchDB, idGenerator?: IdGenerator) {
+    constructor(type: string, db, idGenerator?: IdGenerator) {
         if (!type || !db) {
             throw new TypeError("Missing type or db");
         }

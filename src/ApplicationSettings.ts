@@ -19,9 +19,9 @@ export class ApplicationSettings {
 
     static _type = '_local/';
 
-    protected _db: PouchDB;
+    protected _db;
 
-    constructor(db: PouchDB) {
+    constructor(db) {
         if (!db) {
             throw new TypeError("Missing type or db");
         }

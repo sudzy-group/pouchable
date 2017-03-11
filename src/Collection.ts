@@ -1,12 +1,12 @@
 /**
  * Represents a resource collection in the system
  */
-import * as PouchDB from 'pouchdb';
 import { map, forIn, keys, values, isFunction, isUndefined } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
 import { Entity } from './Entity';
+import * as PouchDB from 'pouchdb';
 
 /**
  * Base class of the different resources in the system
@@ -22,7 +22,7 @@ export class Collection<T extends Entity> {
 
     private _prefix;
 
-    public constructor(db: PouchDB, ctor: EntityConstructor<T>) {
+    public constructor(db, ctor: EntityConstructor<T>) {
         this._prefix = ctor.name;
         this._ctor = ctor;
         this._collectionBase = new EntityCollectionBase(this.getPrefix(), db);
