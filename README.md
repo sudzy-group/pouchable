@@ -49,7 +49,7 @@ class Post extends Entity {
 Declare your collection:
 ```typescript
 class Posts extends Collection<Post> {
-    public getName(): string {
+    public getPrefix(): string {
         return "posts";
     }
 }
