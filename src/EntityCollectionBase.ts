@@ -28,7 +28,7 @@ export class EntityCollectionBase {
     /**
      * @var the db connection
      */
-    protected _db: PouchDB;
+    protected _db;
 
     /**
      * Generates id for the entity
