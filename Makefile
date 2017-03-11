@@ -1,4 +1,4 @@
 test:
-       @./node_modules/.bin/mocha  "./build/tests/*.js" 
+       @./node_modules/.bin/mocha  "./dist/tests/*.js" 
        
 .PHONY: test

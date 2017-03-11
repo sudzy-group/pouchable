@@ -8,7 +8,7 @@
         "sourceMap": true,
         "preserveConstEnums": true,
         "declaration": true,
-        "outDir": "build"
+        "outDir": "dist"
     },
     "typeRoots": [
           "node_modules/@types"
@@ -16,6 +16,10 @@
     "types" : [
           "core-js",
           "pouchdb"
+    ],
+    "include": [
+        "src/**/*",
+        "tests/**/*"       
     ],
     "exclude": [
         "node_modules"

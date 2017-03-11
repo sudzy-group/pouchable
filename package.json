@@ -1,10 +1,11 @@
 {
   "name": "pouchable",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "PouchDB wrapped for TypeScript lovers",
-  "main": "./build/src/index.js",
+  "main": "./dist/src/index.js",
   "scripts": {
-    "test": "tsc;node_modules/.bin/mocha \"./build/tests/*.js\""
+    "test": "tsc;node_modules/.bin/mocha \"./dist/tests/*.js\"",
+    "cover": "istanbul cover  node_modules/.bin/_mocha  \"./dist/tests/*.js\""
   },
   "author": "Roy Ganor <ganoro@gmail.com> (http://ganoro.blogspot.com/)",
   "license": "ISC",
@@ -24,7 +25,7 @@
     "rxjs": "^5.2.0",
     "zone.js": "^0.7.7"
   },
-  "typings": "./build/src/sudzy.db.d.ts",
+  "typings": "./dist/src/index.d.ts",
   "repository" :
     { "type" : "git"
     , "url" : "https://github.com/sudzy-group/pouchable.git"
