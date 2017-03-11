@@ -147,7 +147,7 @@ export class EntityBase {
 
             let ps = [];
             forIn(buckets, (bucket, store) => {
-                if (bucket._added || bucket._updated || bucket._deleted) {
+                if (bucket._added || bucket._updated) {
                     delete bucket._added;
                     delete bucket._updated;
                     ps.push(collection.getDb().put(bucket));
