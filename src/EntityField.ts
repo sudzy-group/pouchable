@@ -44,9 +44,7 @@ export function EntityField(options) {
 
 let d = {
     // either mandatory or not
-    manatory: true,
-    // the group this field is stored
-    group: "default",
+    manatory: false,
     // description
     description: "<TODO: add description>"
 }

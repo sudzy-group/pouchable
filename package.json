@@ -1,6 +1,6 @@
 {
   "name": "pouchable",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "PouchDB wrapped for TypeScript lovers",
   "main": "./build/src/index.js",
   "scripts": {
