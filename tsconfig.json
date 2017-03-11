@@ -8,7 +8,8 @@
         "sourceMap": true,
         "preserveConstEnums": true,
         "declaration": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "removeComments": true
     },
     "typeRoots": [
           "node_modules/@types"
