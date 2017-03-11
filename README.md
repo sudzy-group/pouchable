@@ -22,24 +22,22 @@ Declare your Entity
 class Post extends Entity {
 
     @EntityField({
+        name: "title",   
         mandatory: true,
         group: "default",
-        name: "title",
         search_by: [ _.identity ] // need lodash
     })
     title: string;
 
     @EntityField({
-        mandatory: false,
-        group: "info",
-        name: "author"
+        name: "author",    
+        group: "info"
     })
     author: string;
 
     @EntityField({
-        mandatory: false,
-        group: "info",
         name: "content",
+        group: "info",
         validate: (v) => { return v.length < 140 } 
     })
     content: string;
@@ -82,7 +80,7 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
 (https://raw.githubusercontent.com/sudzy-group/pouchable/master/resources/pouchable_entity.png)
 
 # Contributing to Pouchable
-Contribution is more than welcome! 
+Contribution by pull requetsts is more than welcome, feel free to contact us team@sudzy.co
 <pre>
 npm install
 npm test
