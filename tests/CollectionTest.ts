@@ -158,7 +158,25 @@ import { padStart } from 'lodash';
         }).catch((m) => {
             console.log(m)
         });
+    }   
+
+    @test ("update value then find by old key should fail")
+    testUpdateThenFetchWithPrevious(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        keyupdates.insert({ my_number: 1 }).then((k) => {
+            return keyupdates.update(k, { my_number : 2} );
+        }).then((p) => {
+            return keyupdates.find('my_number', 1);
+        }).then((k) => {
+            if (!k || k.length != 0) {
+                throw new Error("old key still present")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
     }      
+       
 
     @test ("update missing key / value basic - should raise error")
     testUpdateBasicFailure(done: Function) {
