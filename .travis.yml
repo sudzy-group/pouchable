@@ -9,4 +9,4 @@ branches:
 
 after_success:
   - npm install -g codeclimate-test-reporter
-  - codeclimate-test-reporter < coverage/lcov.info
+  - codeclimate-test-reporter < /home/travis/build/sudzy-group/pouchable/coverage/lcov.info
