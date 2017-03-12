@@ -99,13 +99,16 @@ export class EntityBase {
     }
 
     addSearchKey(key, value) {
+        if (!value || !key) {
+            return this;
+        }
         let keyval = key + '/' + value;
         var sk = this.search_keys_ref[keyval];
         if (sk) {
             if (sk._deleted) {
                 delete sk._deleted;
             } 
-            return; 
+            return this; 
         }
 
         let ref = this._collection.prefix + keyval + '/' + this._id;

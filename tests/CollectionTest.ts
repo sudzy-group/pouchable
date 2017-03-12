@@ -180,7 +180,30 @@ import { padStart } from 'lodash';
         }).catch((m) => {
             done();
         });
-    }    
+    }   
+
+    @test ("search key that has undefined value")
+    testSearchKeyWithUndefinedValue(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        keyupdates.insert({ my_number: 1, another_number: 5 }).then((k) => {
+            return keyupdates.find('another_number', 5);
+        }).then((ks) => {
+            if (!ks || ks.length != 1) {
+                throw new Error("error findKey by another number")
+            }
+            return keyupdates.update(ks[0], { another_number: 1} );
+        }).then((p) => {
+            return keyupdates.find('another_number', 1);
+        }).then((k) => {
+            if (!k || k.length != 0) {
+                console.log(k);
+                throw new Error("search key should have been deleted")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }           
 
     @test ("test performance + remove") @timeout(10000)
     testPerformanceRemove(done: Function) {
@@ -342,6 +365,16 @@ class KeyUpdate extends Entity {
     })
     my_number: number;
 
+    @EntityField({
+        group: "my_group",
+        name: "another_number",
+        search_by: [ "positive" ]
+    })
+    another_number: number;
+
+    public positive(value) {
+        return value == 1 ? undefined : value;
+    }
 }
 
 class KeyUpdates extends Collection<KeyUpdate> {

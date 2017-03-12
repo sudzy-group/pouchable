@@ -353,7 +353,7 @@ import * as _ from 'lodash'
         });
     }     
 
-    @test ("remove and add existing search key should do nothing")
+    @test ("remove and remove+rollback should find by key")
     testRemoveSearchThenRollback(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testRemoveSearchThenRollback"}]).then((e) => {
             e.removeSearchKey('v');

@@ -196,7 +196,11 @@ export abstract class Collection<T extends Entity> {
             let mk = md[key];
             if (mk && !mk.mandatory && mk.search_by) {
                 result.remove.push(key);
-                result.add.push({ key: key, val: data[key]});
+                let fs = mk.search_by;
+                for (let f of fs) {
+                    let val = isFunction(f) ? f(value) : t._ctor.prototype[f](value);
+                    result.add.push({ key: key, val: val });
+                }                
             }
         })
         return result;
