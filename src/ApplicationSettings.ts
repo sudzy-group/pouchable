@@ -76,7 +76,7 @@ export class ApplicationSettings {
         return new Promise((resolve, reject) => {
             let r_id = this._resolveId(id);
             this._get(r_id).then((d) => {
-                d ? resolve(d.value) : reject('missing');
+                resolve(d && d.value);
             }).catch(function() {
                 reject();
             });

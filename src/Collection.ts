@@ -1,7 +1,7 @@
 /**
  * Represents a resource collection in the system
  */
-import { map, forIn, keys, values, isFunction, isUndefined } from 'lodash';
+import { map, forIn, keys, values, isFunction, isUndefined, isEqual } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
@@ -82,8 +82,17 @@ export abstract class Collection<T extends Entity> {
      */
     public update(entity : Entity, data) : Promise<T> { 
         return new Promise((resolved, rejected)=> {
+            // make sure we only update the relevant data
+            data = this._resolveData(entity, data);
+            
+            // resolve the keys that needs to be added/removed
+            let skc = this._resolveSearchKeyChanges(entity, data);
+            
+            // resolve the buckets 
             let bs = this._resolveBuckets(data);
-            return entity.updateBuckets(bs).then((t) => {
+
+            // do the change all together
+            return entity.updateBuckets(bs, skc).then((t) => {
                 return resolved(t)
             }).catch((m) => {
                 return rejected(m);
@@ -147,9 +156,6 @@ export abstract class Collection<T extends Entity> {
         let t = this;
         forIn(data, (value, key) => {
             let mk = md[key];
-            if (!mk) {
-                throw new Error("cannot resolve key " + key);
-            }
             if (!mk.mandatory) {
                 // validate value 
                 let f = mk.validate;
@@ -179,5 +185,38 @@ export abstract class Collection<T extends Entity> {
             }
         })
         return result;
+     }
+
+     private _resolveSearchKeyChanges(entity: Entity, data) {
+        let md = this._ctor.prototype.metadata;
+        let result = { add: [], remove: []};
+        let t = this;
+
+        forIn(data, (value, key) => {
+            let mk = md[key];
+            if (mk && !mk.mandatory && mk.search_by) {
+                result.remove.push(key);
+                result.add.push({ key: key, val: data[key]});
+            }
+        })
+        return result;
+     }
+
+     private _resolveData(entity, data) {
+        let md = this._ctor.prototype.metadata;
+        let result = { };
+
+        forIn(data, (value, key) => {
+            let mk = md[key];
+            if (!mk || mk.mandatory) {
+                throw new Error("cannot update key " + key);
+            }                      
+            let bucket = entity._base.buckets[mk.group];
+            if (!isEqual(value, bucket[key])) {
+                result[key] = value;    
+            }
+         });
+
+         return result;
      }
 }

@@ -142,6 +142,24 @@ import { padStart } from 'lodash';
         });
     }  
 
+    @test ("update value then find by updated key")
+    testUpdateThenFetch(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        keyupdates.insert({ my_number: 1 }).then((k) => {
+            return keyupdates.update(k, { my_number : 2} );
+        }).then((p) => {
+            return keyupdates.find('my_number', 2);
+        }).then((k) => {
+            if (!k || k.length != 1) {
+                console.log(k);
+                throw new Error("key was not updated as expected")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }      
+
     @test ("update missing key / value basic - should raise error")
     testUpdateBasicFailure(done: Function) {
         let users = new Users(CollectionTest.db, User);
@@ -307,6 +325,29 @@ class Users extends Collection<User> {
     
     public getPrefix(): string {
         return "users";
+    }
+
+}
+
+
+/**
+ * KeyUpdate example
+ */
+class KeyUpdate extends Entity {
+
+    @EntityField({
+        group: "my_group",
+        name: "my_number",
+        search_by: [ _.identity ]
+    })
+    my_number: number;
+
+}
+
+class KeyUpdates extends Collection<KeyUpdate> {
+    
+    public getPrefix(): string {
+        return "keys";
     }
 
 }

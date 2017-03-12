@@ -40,12 +40,18 @@ export class Entity  {
         return md.mandatory ? this._base.core[key] : this._base.buckets[md.group][key];
     }
 
-    public updateBuckets(buckets) : Promise<Entity> {
+    public updateBuckets(buckets, skc) : Promise<Entity> {
         return new Promise((resolved, rejected) => {
             let t = this;
             forIn(buckets, (bucket, name) => {
                 this._base.updateBucket(name, bucket);
             })
+            for (let skr of skc.remove) {
+                this._base.removeSearchKey(skr);
+            }
+            for (let ska of skc.add) {
+                this._base.addSearchKey(ska.key, ska.val);
+            }
             this._base.save().then((e) => {
                 return resolved(t)
             }).catch((m) => {
