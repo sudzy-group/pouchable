@@ -89,7 +89,9 @@ npm test
 </pre>
 
 ## Topics to enhance
-* Schema documentation generation
+* Change build to gulp
+* Schema documentation generation - see POC at https://goo.gl/xRVl7p
 * Search keys with multiple properties
 * Default value
 * Error handling when partial update happens
+
