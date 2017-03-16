@@ -302,16 +302,6 @@ import * as _ from 'lodash'
     }     
 
     @test ("update storeless decorator should result in error")
-    testUpdateMissingDecorator(done: Function) {
-        EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testUpdateMissingDecorator"}]).then((e) => {
-            e.addBucket('my-store', { b : "testUpdateMissingDecorator"});
-            return e.save();
-        }).then((e) => {
-            e.updateBucket('no-store', { b : "testUpdateMissingDecorator"});
-        }).then(_.noop).catch(() => done());
-    }     
-
-    @test ("update storeless decorator should result in error")
     testUpdateEmptyDecorator(done: Function) {
         EntityBaseTest.collection.insert({ a: "b" }, undefined, [{ key: "v", val: "testUpdateMissingDecorator"}]).then((e) => {
             e.addBucket('my-store', { b : "testUpdateMissingDecorator"});

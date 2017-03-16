@@ -84,8 +84,15 @@ import { padStart } from 'lodash';
     testUpdateWithDifferentValue(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490561"}).then((u) => {
-            return users.update(u, { street_num : 7} );
-        }).then(_.noop).catch((m) => done());
+            return users.update(u, { street_num : "7"} );
+        }).then((u) => {
+            if (u.street_num != "7") {
+                throw new Error("Unable to update street num");
+            }
+            done()
+        }).catch((m) => {
+            console.log(m)
+        });
     }
 
 

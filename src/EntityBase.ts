@@ -83,11 +83,15 @@ export class EntityBase {
             throw new Error("unable to add store-less, empty bucket");
         }
         
-        var d = this.buckets[name];
-        if (!d) {
-            throw new Error("updable to update missing bucket");
+        if (!this.buckets[name]) {
+            this.buckets[name] = { 
+                store: name, 
+                _added: true,
+                _id: this._collection.prefix + this._id + '/' + name
+            };
         }
 
+        var d = this.buckets[name];
         assign(d, bucket);
         omitBy(d, isNil);
 

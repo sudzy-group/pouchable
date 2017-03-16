@@ -216,7 +216,7 @@ export abstract class Collection<T extends Entity> {
                 throw new Error("cannot update key " + key);
             }                      
             let bucket = entity._base.buckets[mk.group];
-            if (!isEqual(value, bucket[key])) {
+            if (!bucket || !isEqual(value, bucket[key])) {
                 result[key] = value;    
             }
          });
