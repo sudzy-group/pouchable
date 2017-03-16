@@ -4,7 +4,8 @@
   "description": "PouchDB wrapped for TypeScript lovers",
   "main": "./dist/src/index.js",
   "scripts": {
-    "test": "tsc;node_modules/.bin/mocha \"./dist/tests/*.js\"",
+    "test": "tsc;node_modules/.bin/mocha \"./dist/tests/*.js\" ",
+    "report-cover": "tsc;node_modules/.bin/mocha \"./dist/tests/*.js\" && ./node_modules/istanbul-coveralls/cli.js",
     "cover": "tsc;istanbul cover  node_modules/.bin/_mocha  \"./dist/tests/*.js\""
   },
   "author": "Roy Ganor <ganoro@gmail.com> (http://ganoro.blogspot.com/)",
@@ -12,7 +13,7 @@
   "devDependencies": {
     "@types/core-js": "^0.9.35",
     "@types/mocha": "^2.2.39",
-    "coveralls": "^2.12.0",
+    "istanbul-coveralls": "^1.0.3",
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.22",
     "ts-node": "^2.1.0",
