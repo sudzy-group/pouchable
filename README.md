@@ -94,6 +94,7 @@ npm test
 
 ## Topics to enhance
 * Change build to gulp
+* A simple web-site that will gather community around us
 * Schema documentation generation - see POC at https://goo.gl/xRVl7p
 * Search keys with multiple properties
 * Default value
