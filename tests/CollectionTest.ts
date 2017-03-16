@@ -80,6 +80,15 @@ import { padStart } from 'lodash';
         }).then(_.noop).catch((m) => done());
     }
 
+    @test ("update with different field")
+    testUpdateWithDifferentValue(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465490561"}).then((u) => {
+            return users.update(u, { street_num : 7} );
+        }).then(_.noop).catch((m) => done());
+    }
+
+
     @test ("missing mandatory should return failure")
     testInsertErrorMissingCore(done: Function) {
         let users = new Users(CollectionTest.db, User);
