@@ -6,13 +6,14 @@
   "scripts": {
     "test": "tsc;node_modules/.bin/mocha \"./dist/tests/*.js\" ",
     "cover": "tsc;istanbul cover  node_modules/.bin/_mocha  \"./dist/tests/*.js\"",
-    "report-cover": "tsc;istanbul cover  node_modules/.bin/_mocha  \"./dist/tests/*.js\" && ./node_modules/istanbul-coveralls/cli.js"   
+    "report-cover": "tsc;node_modules/.bin/istanbul cover  node_modules/.bin/_mocha  \"./dist/tests/*.js\" && node_modules/.bin/istanbul-coveralls"
   },
   "author": "Roy Ganor <ganoro@gmail.com> (http://ganoro.blogspot.com/)",
   "license": "ISC",
   "devDependencies": {
     "@types/core-js": "^0.9.35",
     "@types/mocha": "^2.2.39",
+    "istanbul": "^0.4.5",
     "istanbul-coveralls": "^1.0.3",
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.22",
