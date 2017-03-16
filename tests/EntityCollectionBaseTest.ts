@@ -286,12 +286,4 @@ import * as _ from 'lodash'
         throw new Error("undefined db")
     }
 
-
-    @test ("wrong search key provided")
-    testInsertWrongSearchKey(done: Function) {
-        let collection = new EntityCollectionBase("post", EntityCollectionBaseTest.db);
-        collection.insert({ a: "b" }, [ { store: 'c', c: "c"}], [{ key : 'a', novalue : 'b' }]).then((d) => {
-        }).catch(() => done())
-    }
-
 }

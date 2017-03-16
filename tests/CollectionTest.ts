@@ -5,7 +5,7 @@ import { Collection } from '../src/Collection';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import * as PouchDB from 'pouchdb';
 import * as _ from 'lodash';
-import { padStart } from 'lodash';
+import { padStart, startsWith } from 'lodash';
 
 @suite class CollectionTest {
 
@@ -192,7 +192,45 @@ import { padStart } from 'lodash';
             console.log(m)
         });
     }      
-       
+
+    @test ("insert zero number search key")
+    testInsertZeroSearchKey(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        keyupdates.insert({ my_number: 0 }).then((k) => {
+            return keyupdates.update(k, { my_number : 1} );
+        }).then((p) => {
+            return keyupdates.find('my_number', 1);
+        }).then((k) => {
+            if (!k || k.length != 1) {
+                console.log(k);
+                throw new Error("key was not updated as expected")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }   
+
+
+    @test ("insert values and serach for any")
+    testSearchForAnyValue(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        let ps = [];
+        _.times(10, (i) => {
+            ps.push(keyupdates.insert({ my_number: i }));
+        })
+        Promise.all(ps).then((k) => {
+            return keyupdates.find('my_number', '', { startsWith : true });
+        }).then((k) => {
+            if (!k || k.length < 9) { // 0 should not be added
+                console.log(k);
+                throw new Error("key was not updated as expected")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }   
 
     @test ("update missing key / value basic - should raise error")
     testUpdateBasicFailure(done: Function) {

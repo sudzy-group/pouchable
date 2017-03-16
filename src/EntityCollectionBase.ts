@@ -188,7 +188,7 @@ export class EntityCollectionBase {
         var result = {}
         for (let searchKey of keys) {
             if (!searchKey.key || !searchKey.val) {
-                throw new Error("missing key value for search keys");
+                break;
             }
             let keyval = searchKey.key + '/' + searchKey.val;
             let ref = this.prefix + keyval + '/' + id;

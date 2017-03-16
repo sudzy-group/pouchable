@@ -180,7 +180,7 @@ export abstract class Collection<T extends Entity> {
                 let fs = md[key].search_by;
                 for (let f of fs) {
                     let val = isFunction(f) ? f(value) : t._ctor.prototype[f](value);
-                    result.push({ key: key, val: val });
+                    !isUndefined(val) && result.push({ key: key, val: val });
                 }                
             }
         })
@@ -199,7 +199,7 @@ export abstract class Collection<T extends Entity> {
                 let fs = mk.search_by;
                 for (let f of fs) {
                     let val = isFunction(f) ? f(value) : t._ctor.prototype[f](value);
-                    result.add.push({ key: key, val: val });
+                    !isUndefined(val) && result.add.push({ key: key, val: val });
                 }                
             }
         })
