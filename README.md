@@ -68,6 +68,9 @@ posts.insert({ title: "Pouchable is here!!!", author: "Joe"}).then((p) => {
    console.log(p.title);
 }).catch(() => {});
 ```
+# See it in action, our team example:
+In this example, you will see a live, up-to-date code that is using pouchable and shows real usecases.
+https://github.com/sudzy-group/com.sudzy.db
 
 # What API is available? 
 
