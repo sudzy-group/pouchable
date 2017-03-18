@@ -1,6 +1,6 @@
 {
   "name": "pouchable",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "PouchDB wrapped for TypeScript lovers",
   "main": "./dist/src/index.js",
   "scripts": {
@@ -20,13 +20,13 @@
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.22",
     "ts-node": "^2.1.0",
-    "typescript": "^2.2.1"
+    "typescript": "^2.2.1",
+    "rxjs": "^5.2.0",
+    "zone.js": "^0.7.7"   
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "pouchdb": "^6.1.2",
-    "rxjs": "^5.2.0",
-    "zone.js": "^0.7.7"
+    "pouchdb": "^6.1.2"
   },
   "typings": "./dist/src/index.d.ts",
   "repository": {
