@@ -1,5 +1,5 @@
 # @Pouchable
-PouchDB simplified by TypeScript Decorators (annotations)
+PouchDB simplified by TypeScript Decorators 
 
 [![npm version](https://badge.fury.io/js/pouchable.svg)](https://badge.fury.io/js/pouchable)
 [![Build Status](https://travis-ci.org/sudzy-group/pouchable.svg?branch=master)](https://travis-ci.org/sudzy-group/pouchable)
