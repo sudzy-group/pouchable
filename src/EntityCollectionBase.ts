@@ -118,12 +118,12 @@ export class EntityCollectionBase {
             let startsWith = opts && opts.startsWith
             let search = this.prefix + key + '/' + value + (startsWith ? "" : "/");
             this._db.allDocs(defaults({
-                include_docs: true,
+                include_docs: false,
                 startkey: search,
                 endkey: search + "\uffff"
             }, opts)).then((docs) => {
                 // resolve all ids from the serach keys
-                var ids = uniq(map(docs.rows, (r) => {
+                var ids = uniq(map(docs.rows, (r: any) => {
                     var start = startsWith ? r.id.indexOf('/', search.length) + 1 : search.length;
                     return r.id.substr(start)
                 }));
@@ -134,6 +134,31 @@ export class EntityCollectionBase {
                 return Promise.all(ps);
             }).then((entities) => {
                 return resolved(entities);
+            }).catch(() => {
+                return rejected('missing');
+            })
+        })
+    }
+
+    /**
+     * Finds all ids by a key/values search
+     */
+    findIdsbyKey(key, value, opts?) : Promise<any[]> {
+        return new Promise((resolved, rejected) => {
+            let startsWith = opts && opts.startsWith
+            var pk = this.prefix + key + '/';
+            let search = pk + value + (startsWith ? "" : "/");
+            this._db.allDocs(defaults({
+                include_docs: false,
+                startkey: search,
+                endkey: search + "\uffff"
+            }, opts)).then((docs) => {
+                // resolve all ids from the serach keys
+                var ids = uniq(map(docs.rows, (r : any) => {
+                    let ss = r.id.split('/');
+                    return { value: ss[2], id : ss[3] };
+                }));
+                return resolved(ids);
             }).catch(() => {
                 return rejected('missing');
             })

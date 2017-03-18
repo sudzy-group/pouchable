@@ -232,6 +232,29 @@ import { padStart, startsWith } from 'lodash';
         });
     }   
 
+    @test ("insert values and serach for Ids")
+    testSearchForIds(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        let ps = [];
+        _.times(10, (i) => {
+            let n = _.padStart((100+i).toString(), 4, '0');
+            ps.push(keyupdates.insert({ my_number: n , another_number: 100 }));
+        })
+        Promise.all(ps).then((k) => {
+            return keyupdates.findIds('my_number', '010', { startsWith : true });
+        }).then((k) => {
+            if (!k || k.length < 9) { // 0 should not be added
+                throw new Error("key was not updated as expected")
+            }
+            if (!k[0].id || !k[0].value) {
+                throw new Error("value and ids should be present")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }   
+
     @test ("update missing key / value basic - should raise error")
     testUpdateBasicFailure(done: Function) {
         let users = new Users(CollectionTest.db, User);
