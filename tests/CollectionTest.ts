@@ -141,6 +141,24 @@ import { padStart, startsWith } from 'lodash';
         });
     }    
 
+    @test ("get missing key")
+    testGetMissingKey(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New One", mobile : "6465499876", street : "Orchard St."}).then((p) => {
+            return users.find('mobile', '6465499876');
+        }).then((ps) => {
+            if (!ps || ps.length != 1 || ps[0].street != "Orchard St.") {
+                throw new Error("couldn't find p or the data");
+            }
+            if (ps[0].another_one != null) {
+                throw new Error("couldn't access missing key");
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }    
+
     @test ("update value basic")
     testUpdateBasic(done: Function) {
         let users = new Users(CollectionTest.db, User);
@@ -428,6 +446,13 @@ class User extends Entity {
     })
     street_num: string;
 
+    @EntityField({
+        mandatory: false,
+        group: "temp",
+        name: "another_one",
+        description: "no_set_ever"
+    })
+    another_one: string;    
 
     protected lastFourDigits(mobile) {
         return mobile.substr(-4);

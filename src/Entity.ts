@@ -37,7 +37,11 @@ export class Entity  {
      */
     protected getValue(key) {
         let md = this.getMetadata(key);
-        return md.mandatory ? this._base.core[key] : this._base.buckets[md.group][key];
+        if (md.mandatory) {
+            return this._base.core[key];
+        }
+        let bucket = this._base.buckets[md.group];
+        return bucket ? bucket[key] : null;
     }
 
     public updateBuckets(buckets, skc) : Promise<Entity> {
