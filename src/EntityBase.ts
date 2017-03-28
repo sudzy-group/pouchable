@@ -6,6 +6,7 @@
 import * as PouchDB from 'pouchdb';
 import { map, assign, omitBy, isNil, findIndex, pullAllBy, filter, forIn, unset, values, forInRight } from 'lodash';
 import { EntityCollectionBase } from './EntityCollectionBase'
+import { Promise } from 'ts-promise';
 
 /**
  * Base class of entity, should not be used directly

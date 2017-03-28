@@ -6,6 +6,7 @@ import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import * as PouchDB from 'pouchdb';
 import * as _ from 'lodash';
 import { padStart, startsWith } from 'lodash';
+import { Promise } from 'ts-promise';
 
 @suite class CollectionTest {
 

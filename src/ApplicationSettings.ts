@@ -11,6 +11,7 @@
  */
 import * as PouchDB from 'pouchdb';
 import _ from 'lodash';
+import { Promise } from 'ts-promise';
 
 /**
  * @class ApplicationSettings
@@ -31,8 +32,8 @@ export class ApplicationSettings {
     /**
      * returns true if the key exists in the settings
      */
-    isExists(id) {
-        return new Promise((resolve, reject) => {
+    isExists(id): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             let r_id = this._resolveId(id);
             this._get(r_id).then((d) => {
                 resolve(typeof(d) != "undefined");
@@ -45,8 +46,8 @@ export class ApplicationSettings {
     /**
      * set or update a value in the store
      */
-    set(id, value) {
-        return new Promise((resolved, rejected) => {
+    set(id, value): Promise<any> {
+        return new Promise<any>((resolved, rejected) => {
             let r_id = this._resolveId(id);
             return this._get(r_id).then((e) => {
                 let doc = {
@@ -72,13 +73,13 @@ export class ApplicationSettings {
     /**
      * get the value of the id
      */
-    get(id) {
-        return new Promise((resolve, reject) => {
+    get(id): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
             let r_id = this._resolveId(id);
             this._get(r_id).then((d) => {
                 resolve(d && d.value);
             }).catch(function() {
-                reject();
+                reject(new Error("couldn't get value for " + id));
             });
         });
     }

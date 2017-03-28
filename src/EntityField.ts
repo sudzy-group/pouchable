@@ -12,7 +12,7 @@ import { defaults, isArray, isUndefined, isFunction, castArray } from 'lodash';
  */
 export function EntityField(options) {
     
-    return function(target: Object, key: string) {
+    return function(target: any, key: string) {
         
         if (isUndefined(target.metadata)) {
             Object.defineProperty(target, 'metadata', { 

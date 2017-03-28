@@ -1,6 +1,6 @@
 {
   "name": "pouchable",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "PouchDB wrapped for TypeScript lovers",
   "main": "./dist/src/index.js",
   "scripts": {
@@ -12,17 +12,18 @@
   "license": "ISC",
   "devDependencies": {
     "@types/core-js": "^0.9.35",
-    "@types/mocha": "^2.2.39",
     "@types/lodash": "^4.14.54",
+    "@types/mocha": "^2.2.39",
     "@types/pouchdb": "^5.4.28",
     "istanbul": "^0.4.5",
     "istanbul-coveralls": "^1.0.3",
     "mocha": "^3.2.0",
     "mocha-typescript": "^1.0.22",
-    "ts-node": "^2.1.0",
-    "typescript": "^2.2.1",
     "rxjs": "^5.2.0",
-    "zone.js": "^0.7.7"   
+    "ts-node": "^2.1.0",
+    "ts-promise": "^0.3.4",
+    "typescript": "^2.2.1",
+    "zone.js": "^0.7.7"
   },
   "dependencies": {
     "lodash": "^4.17.4",

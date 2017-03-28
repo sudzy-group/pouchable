@@ -4,6 +4,7 @@
 import { map, forIn } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { Collection } from './Collection'
+import { Promise } from 'ts-promise';
 
 /**
  * Base class of entity, should not be used directly

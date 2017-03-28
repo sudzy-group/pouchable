@@ -7,6 +7,7 @@ import { EntityCollectionBase } from './EntityCollectionBase';
 import { EntityConstructor } from './EntityConstructor';
 import { Entity } from './Entity';
 import * as PouchDB from 'pouchdb';
+import { Promise } from 'ts-promise';
 
 /**
  * Base class of the different resources in the system

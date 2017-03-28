@@ -3,6 +3,7 @@ import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import { EntityCollectionBase } from '../src/EntityCollectionBase';
 import { EntityBase } from '../src/EntityBase';
 import * as _ from 'lodash'
+import { Promise } from 'ts-promise';
 
 @suite class EntityBaseTest {
 

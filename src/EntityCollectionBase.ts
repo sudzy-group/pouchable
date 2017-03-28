@@ -8,6 +8,7 @@ import { concat, compact, map, startsWith, findIndex, values, keys, uniq, defaul
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
 import { EntityBase } from './EntityBase';
+import { Promise } from 'ts-promise';
 
 /**
  * Gneral usage of all collections

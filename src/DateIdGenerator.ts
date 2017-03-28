@@ -3,6 +3,7 @@
  */
 import { IdGenerator } from './IdGenerator';
 import { random, padStart } from 'lodash';
+import { Promise } from 'ts-promise';
 
 export class DateIdGenerator implements IdGenerator {
 
