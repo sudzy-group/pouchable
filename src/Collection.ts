@@ -32,7 +32,7 @@ export abstract class Collection<T extends Entity> {
     public abstract getPrefix(): string;
 
     public insert(data) : Promise<T> { 
-        return new Promise((resolved, rejected)=> {
+        return new Promise<T>((resolved, rejected)=> {
             let c = this._resolveCore(data);
             let b = values(this._resolveBuckets(data));
             let sks = this._resolveSearchKeys(data);
@@ -49,7 +49,7 @@ export abstract class Collection<T extends Entity> {
      * @param id 
      */
     public get(id) : Promise<T> { 
-        return new Promise((resolved, rejected)=> {
+        return new Promise<T>((resolved, rejected)=> {
             this._collectionBase.getById(id).then((eb) => {
                 return resolved(new this._ctor(eb));
             }).catch((m) => {
@@ -65,7 +65,7 @@ export abstract class Collection<T extends Entity> {
      * @param options 
      */
     public find(key, value, options?) : Promise<T[]> { 
-        return new Promise((resolved, rejected)=> {
+        return new Promise<T[]>((resolved, rejected)=> {
             let t = this;
             this._collectionBase.findByKey(key, value, options).then((ebs) => {
                 return resolved(map(ebs, (eb) => { return new t._ctor(eb)}) );
@@ -82,7 +82,7 @@ export abstract class Collection<T extends Entity> {
      * @param options 
      */
     public findIds(key, value, options?) : Promise<any[]> { 
-        return new Promise((resolved, rejected)=> {
+        return new Promise<any[]>((resolved, rejected)=> {
             let t = this;
             this._collectionBase.findIdsbyKey(key, value, options).then((ebs) => {
                 return resolved(ebs);
@@ -99,7 +99,7 @@ export abstract class Collection<T extends Entity> {
      * @param options 
      */
     public update(entity : Entity, data) : Promise<T> { 
-        return new Promise((resolved, rejected)=> {
+        return new Promise<T>((resolved, rejected)=> {
             // make sure we only update the relevant data
             data = this._resolveData(entity, data);
             
@@ -122,8 +122,8 @@ export abstract class Collection<T extends Entity> {
      * Remove entity
      * @param entity 
      */
-    public remove(entity : Entity) : Promise<T> { 
-        return new Promise((resolved, rejected)=> {
+    public remove(entity : Entity) : Promise<Entity> { 
+        return new Promise<Entity>((resolved, rejected)=> {
             this._collectionBase.remove(entity._base).then((t) => {
                 return resolved(entity)
             }).catch((m) => {

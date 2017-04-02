@@ -128,7 +128,7 @@ export class EntityBase {
 
     removeSearchKey(key) {
 
-        forInRight(this.search_keys_ref, (sk, value) => {
+        forInRight(this.search_keys_ref, (sk: any, value) => {
             if (sk.key == key) {
                 if (sk._added) {
                     unset(this.search_keys_ref, value)
@@ -151,10 +151,10 @@ export class EntityBase {
         let collection = this._collection;
         let search_keys_ref = this.search_keys_ref;
 
-        return new Promise((resolved, rejected) => {
+        return new Promise<EntityBase>((resolved, rejected) => {
 
             let ps = [];
-            forIn(buckets, (bucket, store) => {
+            forIn(buckets, (bucket: any, store) => {
                 if (bucket._added || bucket._updated) {
                     delete bucket._added;
                     delete bucket._updated;
@@ -163,7 +163,7 @@ export class EntityBase {
             });
 
             let fetch = [];
-            forIn(search_keys_ref, (sk_ref, value) => {
+            forIn(search_keys_ref, (sk_ref: any, value) => {
                 if (sk_ref._added) {
                     delete sk_ref._added;
                     ps.push(collection.getDb().put({ _id: sk_ref.ref }))
@@ -204,8 +204,8 @@ export class EntityBase {
      * Rollback operations to model
      */
     rollback() : Promise<EntityBase> {
-        let t = this;
-        return new Promise((resolved, rejected) => {
+        let t: any = this;
+        return new Promise<EntityBase>((resolved, rejected) => {
 
             // remove the new nodes
             pullAllBy(t.buckets, [{ rev : undefined }], 'rev');

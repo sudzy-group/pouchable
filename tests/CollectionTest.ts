@@ -5,7 +5,7 @@ import { Collection } from '../src/Collection';
 import { suite, test, slow, timeout, skip, only } from "mocha-typescript";
 import * as PouchDB from 'pouchdb';
 import * as _ from 'lodash';
-import { padStart, startsWith } from 'lodash';
+import { padStart, startsWith, identity } from 'lodash';
 import { Promise } from 'ts-promise';
 
 @suite class CollectionTest {
@@ -251,6 +251,34 @@ import { Promise } from 'ts-promise';
         });
     }   
 
+    @test ("insert boolean and search for it")
+    testSearchByBoolean(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        let ps = [];
+        _.times(5, (i) => {
+            let n = _.padStart((100+i).toString(), 4, '0');
+            ps.push(keyupdates.insert({ my_number: n , another_number: 100, test_boolean: false }));
+        })
+        _.times(5, (i) => {
+            i = i + 6;
+            let n = _.padStart((100+i).toString(), 4, '0');
+            ps.push(keyupdates.insert({ my_number: n , another_number: 100, test_boolean: true }));
+        })
+        Promise.all(ps).then((k) => {
+            return keyupdates.find('test_boolean', false);
+        }).then((k) => {
+            if (!k || k.length != 5) { 
+                throw new Error("key was not found by boolean as expected")
+            }
+            if (!k[0].id || k[0].test_boolean) {
+                throw new Error("value and ids should be present")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }   
+
     @test ("insert values and serach for Ids")
     testSearchForIds(done: Function) {
         let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
@@ -272,7 +300,7 @@ import { Promise } from 'ts-promise';
         }).catch((m) => {
             console.log(m)
         });
-    }   
+    }      
 
     @test ("update missing key / value basic - should raise error")
     testUpdateBasicFailure(done: Function) {
@@ -492,6 +520,15 @@ class KeyUpdate extends Entity {
         search_by: [ "positive" ]
     })
     another_number: number;
+
+    @EntityField({
+        mandatory: false,
+        group: "address",
+        name: "test_boolean",
+        description: "test boolean",
+        search_by: [ identity ]
+    })
+    test_boolean: boolean;       
 
     public positive(value) {
         return value == 1 ? undefined : value;

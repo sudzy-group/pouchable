@@ -11,6 +11,9 @@ import { Promise } from 'ts-promise';
  */
 export class Entity  {
 
+    // holds all metadata information given by @EntityField
+    public metadata;
+
     /**
      * the basic entity, should not be used by implementors
      */
@@ -46,7 +49,7 @@ export class Entity  {
     }
 
     public updateBuckets(buckets, skc) : Promise<Entity> {
-        return new Promise((resolved, rejected) => {
+        return new Promise<Entity>((resolved, rejected) => {
             let t = this;
             forIn(buckets, (bucket, name) => {
                 this._base.updateBucket(name, bucket);

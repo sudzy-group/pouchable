@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, findIndex, values, keys, uniq, defaults, forIn } from 'lodash';
+import { concat, compact, map, startsWith, findIndex, values, keys, uniq, defaults, forIn, isUndefined } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -51,7 +51,7 @@ export class EntityCollectionBase {
      */
     insert(core, buckets?: any[], keys? : any[]) : Promise<EntityBase> {
 
-        return new Promise((resolved, rejected) => {
+        return new Promise<EntityBase>((resolved, rejected) => {
             // generate id
             let id = this._idGenerator.get();
             let e_core = this._resolveCore(core, id);
@@ -64,7 +64,7 @@ export class EntityCollectionBase {
             this._db.bulkDocs(all).then((ds) => {
                 e.resolveRevs(ds);
                 return resolved(e);
-            }).catch(rejected);
+            }).catch((m) => rejected(new Error(m)));
         })
     }
 
@@ -95,7 +95,7 @@ export class EntityCollectionBase {
      * Get entity by id
      */
     getById(id) : Promise<EntityBase> {
-        return new Promise((resolved, rejected) => {
+        return new Promise<EntityBase>((resolved, rejected) => {
             // generate id
             let prefix = this.prefix + id + "/";
             this._db.allDocs({
@@ -106,7 +106,7 @@ export class EntityCollectionBase {
                 let e = this._createEntityFromDocs(docs, prefix, id);
                 return resolved(e);
             }).catch(() => {
-                return rejected('missing');
+                return rejected(new Error('missing'));
             })
         })
     }
@@ -115,7 +115,7 @@ export class EntityCollectionBase {
      * Find entity by key search
      */
     findByKey(key, value, opts?) : Promise<EntityBase[]> {
-        return new Promise((resolved, rejected) => {
+        return new Promise<EntityBase[]>((resolved, rejected) => {
             let startsWith = opts && opts.startsWith
             let search = this.prefix + key + '/' + value + (startsWith ? "" : "/");
             this._db.allDocs(defaults({
@@ -136,7 +136,7 @@ export class EntityCollectionBase {
             }).then((entities) => {
                 return resolved(entities);
             }).catch(() => {
-                return rejected('missing');
+                return rejected(new Error('missing'));
             })
         })
     }
@@ -145,7 +145,7 @@ export class EntityCollectionBase {
      * Finds all ids by a key/values search
      */
     findIdsbyKey(key, value, opts?) : Promise<any[]> {
-        return new Promise((resolved, rejected) => {
+        return new Promise<any[]>((resolved, rejected) => {
             let startsWith = opts && opts.startsWith
             var pk = this.prefix + key + '/';
             let search = pk + value + (startsWith ? "" : "/");
@@ -161,7 +161,7 @@ export class EntityCollectionBase {
                 }));
                 return resolved(ids);
             }).catch(() => {
-                return rejected('missing');
+                return rejected(new Error('missing'));
             })
         })
     }
@@ -213,7 +213,7 @@ export class EntityCollectionBase {
     _resolveSearchKeysRef(keys, id) {
         var result = {}
         for (let searchKey of keys) {
-            if (!searchKey.key || !searchKey.val) {
+            if (isUndefined(searchKey.key) || isUndefined(searchKey.val)) {
                 break;
             }
             let keyval = searchKey.key + '/' + searchKey.val;
