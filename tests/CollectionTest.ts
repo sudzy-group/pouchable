@@ -13,12 +13,12 @@ import { Promise } from 'ts-promise';
     static db_name;
     static db;
 
-    static before() {
+    before() {
         CollectionTest.db_name = 'CollectionTest' + Math.random();
         CollectionTest.db = new PouchDB(CollectionTest.db_name);
     }
 
-    static after(done) {
+    after(done) {
         CollectionTest.db.destroy().then(() => {
             done();
         }).catch(function (err) {
@@ -251,6 +251,26 @@ import { Promise } from 'ts-promise';
         });
     }   
 
+    @test ("insert values and serach for greater than")
+    testSearchForGreaterThan(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        let ps = [];
+        _.times(10, (i) => {
+            ps.push(keyupdates.insert({ my_number: i }));
+        })
+        Promise.all(ps).then((k) => {
+            return keyupdates.find('my_number', 5, { gte: true });
+        }).then((k) => {
+            if (!k || k.length != 5) { // 0 should not be added
+                console.log(k.length);
+                throw new Error("key was not found as expected")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }      
+
     @test ("insert boolean and search by value 'false'")
     testSearchByBoolean(done: Function) {
         let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
@@ -332,6 +352,22 @@ import { Promise } from 'ts-promise';
             done();
         });
     }   
+
+    @test ("search key that has undefined value")
+    testInsertWithUndefinedSearchValue(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        keyupdates.insert({ my_number: 1, another_number: 1 }).then((k) => {
+            return keyupdates.find('another_number', 1);
+        }).then((ks) => {
+            if (!ks || ks.length != 0) {
+                console.log(ks);
+                throw new Error("search key should have been deleted")
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }     
 
     @test ("search key that has undefined value")
     testSearchKeyWithUndefinedValue(done: Function) {

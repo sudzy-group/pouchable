@@ -105,8 +105,8 @@ export class EntityCollectionBase {
             }).then((docs) => {
                 let e = this._createEntityFromDocs(docs, prefix, id);
                 return resolved(e);
-            }).catch(() => {
-                return rejected(new Error('missing'));
+            }).catch((m) => {
+                return rejected(new Error(m));
             })
         })
     }
@@ -117,11 +117,12 @@ export class EntityCollectionBase {
     findByKey(key, value, opts?) : Promise<EntityBase[]> {
         return new Promise<EntityBase[]>((resolved, rejected) => {
             let startsWith = opts && opts.startsWith
+            let gte = opts && opts.gte;
             let search = this.prefix + key + '/' + value + (startsWith ? "" : "/");
             this._db.allDocs(defaults({
                 include_docs: false,
                 startkey: search,
-                endkey: search + "\uffff"
+                endkey: gte ? undefined : (search + "\uffff")
             }, opts)).then((docs) => {
                 // resolve all ids from the serach keys
                 var ids = uniq(map(docs.rows, (r: any) => {
@@ -135,8 +136,8 @@ export class EntityCollectionBase {
                 return Promise.all(ps);
             }).then((entities) => {
                 return resolved(entities);
-            }).catch(() => {
-                return rejected(new Error('missing'));
+            }).catch((m) => {
+                return rejected(new Error(m));
             })
         })
     }
@@ -147,12 +148,13 @@ export class EntityCollectionBase {
     findIdsbyKey(key, value, opts?) : Promise<any[]> {
         return new Promise<any[]>((resolved, rejected) => {
             let startsWith = opts && opts.startsWith
+            let gte = opts && opts.gte;
             var pk = this.prefix + key + '/';
             let search = pk + value + (startsWith ? "" : "/");
             this._db.allDocs(defaults({
                 include_docs: false,
                 startkey: search,
-                endkey: search + "\uffff"
+                endkey: gte ? undefined : (search + "\uffff")
             }, opts)).then((docs) => {
                 // resolve all ids from the serach keys
                 var ids = uniq(map(docs.rows, (r : any) => {
@@ -160,8 +162,8 @@ export class EntityCollectionBase {
                     return { value: ss[2], id : ss[3] };
                 }));
                 return resolved(ids);
-            }).catch(() => {
-                return rejected(new Error('missing'));
+            }).catch((m) => {
+                return rejected(new Error(m));
             })
         })
     }
