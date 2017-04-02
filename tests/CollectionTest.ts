@@ -251,7 +251,7 @@ import { Promise } from 'ts-promise';
         });
     }   
 
-    @test ("insert boolean and search for it")
+    @test ("insert boolean and search by value 'false'")
     testSearchByBoolean(done: Function) {
         let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
         let ps = [];
@@ -272,6 +272,15 @@ import { Promise } from 'ts-promise';
             }
             if (!k[0].id || k[0].test_boolean) {
                 throw new Error("value and ids should be present")
+            }
+            // updating is_confirmed to true
+            return keyupdates.update(k[0], { test_boolean: true } );
+        }).then((k) => {
+            return keyupdates.find('test_boolean', false);
+        }).then((k) => {
+            // now we need only 4 to be found in the database
+            if (!k || k.length != 4) { 
+                throw new Error("key was not found by boolean as expected")
             }
             done();
         }).catch((m) => {

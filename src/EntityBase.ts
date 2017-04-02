@@ -4,7 +4,7 @@
  * and sub coreuments that hold metadata and search terms for this entity.
  */
 import * as PouchDB from 'pouchdb';
-import { map, assign, omitBy, isNil, findIndex, pullAllBy, filter, forIn, unset, values, forInRight } from 'lodash';
+import { map, assign, omitBy, isNil, findIndex, pullAllBy, filter, forIn, unset, values, forInRight, isUndefined } from 'lodash';
 import { EntityCollectionBase } from './EntityCollectionBase'
 import { Promise } from 'ts-promise';
 
@@ -104,7 +104,7 @@ export class EntityBase {
     }
 
     addSearchKey(key, value) {
-        if (!value || !key) {
+        if (isUndefined(value) || isUndefined(key)) {
             return this;
         }
         let keyval = key + '/' + value;
