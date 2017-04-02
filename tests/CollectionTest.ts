@@ -265,6 +265,12 @@ import { Promise } from 'ts-promise';
                 console.log(k.length);
                 throw new Error("key was not found as expected")
             }
+            return keyupdates.findIds('my_number', 5, { gte: true });
+        }).then((k) => {
+            if (!k || k.length != 5) { // 0 should not be added
+                console.log(k.length);
+                throw new Error("key was not found as expected")
+            }
             done();
         }).catch((m) => {
             console.log(m)
