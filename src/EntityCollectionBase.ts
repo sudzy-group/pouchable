@@ -58,7 +58,6 @@ export class EntityCollectionBase {
             let e_buckets = buckets ? this._resolveBuckets(buckets, id) : {};
             let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : {};
             let search_keys = keys ? this._resolveSearchKeys(e_search_keys_ref, id) : [];
-
             let e = new EntityBase(this, id, e_core, e_buckets, e_search_keys_ref);
             var all = compact(concat(e_core, values(e_buckets), values(e_search_keys_ref), search_keys));
             this._db.bulkDocs(all).then((ds) => {
@@ -183,7 +182,7 @@ export class EntityCollectionBase {
             if (result.doc._id == prefix) {
                 core = result.doc;
             } else if (startsWith(result.doc._id, prefix + 'sk')) {
-                search_keys_ref[result.doc._id.substr(prefix.length + 4)] = result.doc;
+                search_keys_ref[result.doc._id.substr(prefix.length + 3)] = result.doc;
             } else {
                 buckets[result.doc.store] = result.doc;
             }
