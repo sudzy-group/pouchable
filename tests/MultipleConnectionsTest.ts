@@ -31,7 +31,6 @@ class MultipleConnectionsTest {
       return customers.find('mobile','19292770101');
     }).then((cs) => {
       let c = cs[0];
-      console.log(c);
       let updatedCustomerObj = {
         name: "Roy Ganor1",
       }
