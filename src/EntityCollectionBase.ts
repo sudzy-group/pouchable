@@ -194,7 +194,6 @@ export class EntityCollectionBase {
         core._id = this.prefix + id + "/";
         let time = new Date().getTime();
         core.created_at = time;
-        core.type = this.type;
         core.index = id;
         return core;
     }

@@ -68,7 +68,10 @@ export abstract class Collection<T extends Entity> {
         return new Promise<T[]>((resolved, rejected)=> {
             let t = this;
             this._collectionBase.findByKey(key, value, options).then((ebs) => {
-                return resolved(map(ebs, (eb) => { return new t._ctor(eb)}) );
+                let entities = map(ebs, (eb) => { 
+                    return new t._ctor(eb)
+                });
+                return resolved(entities);
             }).catch((m) => {
                 return rejected(m)
             });

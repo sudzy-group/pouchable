@@ -3,16 +3,16 @@ import { defaults, isArray, isUndefined, isFunction, castArray } from 'lodash';
 /**
  * Helps building the metadata of @see Entity
  * <code>{
- *      manatory: true,    // either mandatory or not
+ *      mandatory: true,    // either mandatory or not
  *      group: "default",  // the group this field is stored
  *      name: "id",        // name of the field in the database 
  *      description: "<TODO: add description>" // description
  *  } </code>
  * @param options for the entity decorator
  */
-export function EntityField(options) {
+export function EntityField(options) : any {
     
-    return function(target: any, key: string) {
+    return function(target: any, key: string) : any {
         
         if (isUndefined(target.metadata)) {
             Object.defineProperty(target, 'metadata', { 
@@ -25,7 +25,7 @@ export function EntityField(options) {
         target.metadata[key] = validateOptions(options);
 
         // property getter
-        const getter = function () {
+        const getter = function (): any {
             return this.getValue(key);
         };
 
@@ -44,12 +44,12 @@ export function EntityField(options) {
 
 let d = {
     // either mandatory or not
-    manatory: false,
+    mandatory: false,
     // description
     description: "<TODO: add description>"
 }
 
-function validateOptions(options) {
+function validateOptions(options) : any {
 
     defaults(options, d);
 

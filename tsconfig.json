@@ -5,6 +5,7 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
         "sourceMap": true,
         "preserveConstEnums": true,
         "declaration": true,
