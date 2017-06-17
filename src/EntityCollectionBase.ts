@@ -193,7 +193,7 @@ export class EntityCollectionBase {
     _resolveCore(core, id) {
         core._id = this.prefix + id + "/";
         let time = new Date().getTime();
-        core.created_at = time;
+        core.created_at = core.created_at || time;
         core.index = id;
         return core;
     }

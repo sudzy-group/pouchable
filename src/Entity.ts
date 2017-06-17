@@ -35,6 +35,10 @@ export class Entity  {
         return this._base.core.index;
     }
 
+    get created_at() {
+        return this._base.core.created_at;
+    }
+
     /**
      * Get the value of the property 
      * @param key 

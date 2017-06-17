@@ -31,9 +31,9 @@ export abstract class Collection<T extends Entity> {
      */
     public abstract getPrefix(): string;
 
-    public insert(data) : Promise<T> { 
+    public insert(data, created_at: number = null) : Promise<T> { 
         return new Promise<T>((resolved, rejected)=> {
-            let c = this._resolveCore(data);
+            let c = this._resolveCore(data, created_at);
             let b = values(this._resolveBuckets(data));
             let sks = this._resolveSearchKeys(data);
             this._collectionBase.insert(c, b, sks).then((eb) => {
@@ -135,9 +135,9 @@ export abstract class Collection<T extends Entity> {
         })
     } 
         
-    private _resolveCore(data) {
+    private _resolveCore(data, created_at): any {
         let md = this._ctor.prototype.metadata;
-        let result = {};
+        let result: any = {};
         let t = this;
         forIn(data, (value, key) => {
             let mk = md[key];
@@ -145,7 +145,6 @@ export abstract class Collection<T extends Entity> {
                 throw new Error("missing definition for " + key);
             }
             if (mk.mandatory) {
-
                 // validate value 
                 let f = mk.validate;
                 let isValid = isFunction(f)? f(value) : (isUndefined(f) || t._ctor.prototype[f](value));
@@ -167,6 +166,9 @@ export abstract class Collection<T extends Entity> {
         })
         if (c != keys(result).length) {
             throw new Error("missing mandatory");
+        }
+        if (created_at) {
+            result.created_at = created_at;
         }
         return result;
      }

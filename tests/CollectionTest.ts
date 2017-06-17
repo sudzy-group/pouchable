@@ -27,7 +27,7 @@ import { Promise } from 'ts-promise';
     }
 
     @test ("insert doc should return entity")
-    testInsertDoc(done: Function) {
+    testInsertDoc1(done: Function) {
         let posts = new Posts(CollectionTest.db, Post);
         posts.insert({ title: "New One"}).then((p) => {
             if (p.title != "New One") {
@@ -36,6 +36,33 @@ import { Promise } from 'ts-promise';
             done();
         }).catch(_.noop);
     }
+
+    @test ("insert doc with created_at should return entity")
+    testInsertDoc2(done: Function) {
+        let posts = new Posts(CollectionTest.db, Post);
+        posts.insert({ title: "New Two"}, new Date().getTime()).then((p) => {
+            if (p.title != "New Two") {
+                throw new Error("missing data");
+            }
+            done();
+        }).catch(_.noop);
+    }
+
+    @test ("insert doc with created_at in the previous should return entity")
+    testInsertDoc3(done: Function) {
+        let posts = new Posts(CollectionTest.db, Post);
+        let ca = new Date().getTime();
+        posts.insert({ title: "New Three"}, ca).then((p) => {
+            if (p.title != "New Three") {
+                throw new Error("missing data");
+            }
+            if (p.created_at != ca) {
+                throw new Error("created at was not stored correctly");
+            }
+            done();
+        }).catch(_.noop);
+    }
+
 
     @test ("insert doc with invalid field value")
     testInsertDocInvalidField(done: Function) {
