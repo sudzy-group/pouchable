@@ -118,11 +118,11 @@ export class EntityCollectionBase {
             let startsWith = opts && opts.startsWith
             let gte = opts && opts.gte;
             let search = this.prefix + key + '/' + value + (startsWith ? "" : "/");
-            this._db.allDocs(defaults({
+            this._db.allDocs(defaults(opts, {
                 include_docs: false,
                 startkey: search,
                 endkey: gte ? undefined : (search + "\uffff")
-            }, opts)).then((docs) => {
+            })).then((docs) => {
                 // resolve all ids from the serach keys
                 var ids = uniq(map(docs.rows, (r: any) => {
                     var start = startsWith ? r.id.indexOf('/', search.length) + 1 : search.length;
