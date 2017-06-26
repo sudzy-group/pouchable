@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, findIndex, values, keys, uniq, defaults, forIn, isUndefined } from 'lodash';
+import { concat, compact, map, startsWith, findIndex, values, keys, uniq, uniqBy, defaults, forIn, isUndefined } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -156,10 +156,10 @@ export class EntityCollectionBase {
                 endkey: gte ? undefined : (search + "\uffff")
             }, opts)).then((docs) => {
                 // resolve all ids from the serach keys
-                var ids = uniq(map(docs.rows, (r : any) => {
+                var ids = uniqBy(map(docs.rows, (r : any) => {
                     let ss = r.id.split('/');
                     return { value: ss[2], id : ss[3] };
-                }));
+                }), 'id');
                 return resolved(ids);
             }).catch((m) => {
                 return rejected(new Error(m));
