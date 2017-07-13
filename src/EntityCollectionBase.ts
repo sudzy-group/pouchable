@@ -150,11 +150,11 @@ export class EntityCollectionBase {
             let gte = opts && opts.gte;
             var pk = this.prefix + key + '/';
             let search = pk + value + (startsWith ? "" : "/");
-            this._db.allDocs(defaults({
+            this._db.allDocs(defaults(opts, {
                 include_docs: false,
                 startkey: search,
                 endkey: gte ? undefined : (search + "\uffff")
-            }, opts)).then((docs) => {
+            })).then((docs) => {
                 // resolve all ids from the serach keys
                 var ids = uniqBy(map(docs.rows, (r : any) => {
                     let ss = r.id.split('/');
