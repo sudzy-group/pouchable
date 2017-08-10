@@ -96,6 +96,23 @@ export abstract class Collection<T extends Entity> {
     } 
 
     /**
+     * Find by range of ids
+     * @param key 
+     * @param value 
+     * @param options 
+     */
+    public findByIds(from, to, options?) : Promise<any[]> { 
+        return new Promise<any[]>((resolved, rejected)=> {
+            let t = this;
+            this._collectionBase.findByIds(from, to, options).then((ebs) => {
+                return resolved(ebs);
+            }).catch((m) => {
+                return rejected(m)
+            });
+        })
+    } 
+
+    /**
      * Find entity by key/value. 
      * @param key 
      * @param value 

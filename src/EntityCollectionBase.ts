@@ -124,9 +124,9 @@ export class EntityCollectionBase {
                 endkey: gte ? undefined : (search + "\uffff")
             })).then((docs) => {
                 // resolve all ids from the serach keys
-                var ids = uniq(map(docs.rows, (r: any) => {
-                    var start = startsWith ? r.id.indexOf('/', search.length) + 1 : search.length;
-                    return r.id.substr(start)
+                let ids = uniq(map(docs.rows, (r: any) => {
+                    let start = startsWith ? r.id.indexOf('/', search.length) + 1 : search.length;
+                    return r.id.substr(start);
                 }));
                 let ps = [];
                 for (let id of ids) {
@@ -148,7 +148,7 @@ export class EntityCollectionBase {
         return new Promise<any[]>((resolved, rejected) => {
             let startsWith = opts && opts.startsWith
             let gte = opts && opts.gte;
-            var pk = this.prefix + key + '/';
+            let pk = this.prefix + key + '/';
             let search = pk + value + (startsWith ? "" : "/");
             this._db.allDocs(defaults(opts, {
                 include_docs: false,
@@ -156,7 +156,7 @@ export class EntityCollectionBase {
                 endkey: gte ? undefined : (search + "\uffff")
             })).then((docs) => {
                 // resolve all ids from the serach keys
-                var ids = uniqBy(map(docs.rows, (r : any) => {
+                let ids = uniqBy(map(docs.rows, (r : any) => {
                     let ss = r.id.split('/');
                     return { value: ss[2], id : ss[3] };
                 }), 'id');
@@ -166,6 +166,38 @@ export class EntityCollectionBase {
             })
         })
     }
+
+    /**
+     * Find entity by if [from, to] search 
+     */
+    findByIds(from, to, opts?) : Promise<EntityBase[]> {
+        return new Promise<EntityBase[]>((resolved, rejected) => {
+            let search = this.prefix;
+            let def = {
+                include_docs: false,
+                startkey: search + from,
+                endkey: (search + to + "\uffff")
+            };
+            this._db.allDocs(defaults(opts, def)).then((docs) => {
+                // resolve all ids from the serach keys
+                let ids = uniq(map(docs.rows, (r: any) => {
+                    let start = search.length;
+                    let end = r.id.indexOf('/', start);
+                    return r.id.substr(start, end - start);
+                }));
+                let ps = [];
+                for (let id of ids) {
+                    ps.push(this.getById(id));
+                }
+                return Promise.all(ps);
+            }).then((entities) => {
+                return resolved(entities);
+            }).catch((m) => {
+                return rejected(new Error(m));
+            })
+        })
+    }
+
 
     /**
      * Returns the parent database

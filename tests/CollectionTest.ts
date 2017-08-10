@@ -298,11 +298,19 @@ import { Promise } from 'ts-promise';
                 console.log(k.length);
                 throw new Error("key was not found as expected")
             }
+            let e = Date.now();
+            let s = Date.now() - 7000;
+            return keyupdates.findByIds(s, e);
+        }).then((ks) => {
+            if (!ks || ks.length == 0) { // 0 should not be added
+                console.log(0);
+                throw new Error("range was not found as expected")
+            }
             done();
         }).catch((m) => {
             console.log(m)
         });
-    }      
+    }
 
     @test ("insert boolean and search by value 'false'")
     testSearchByBoolean(done: Function) {
