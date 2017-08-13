@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, findIndex, values, keys, uniq, uniqBy, defaults, forIn, isUndefined } from 'lodash';
+import { concat, compact, map, startsWith, findIndex, values, keys, uniq, uniqBy, defaults, forIn, isUndefined, reduce } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -180,11 +180,14 @@ export class EntityCollectionBase {
             };
             this._db.allDocs(defaults(opts, def)).then((docs) => {
                 // resolve all ids from the serach keys
-                let ids = uniq(map(docs.rows, (r: any) => {
+                let ids = reduce(docs.rows, (result, r: any) => {
                     let start = search.length;
                     let end = r.id.indexOf('/', start);
-                    return r.id.substr(start, end - start);
-                }));
+                    if ((end + 1) == r.id.length) { // if it's the core id
+                        result.push(r.id.substr(start, end - start));
+                    } 
+                    return result;
+                }, []);
                 let ps = [];
                 for (let id of ids) {
                     ps.push(this.getById(id));
