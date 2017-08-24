@@ -201,6 +201,33 @@ export class EntityCollectionBase {
         })
     }
 
+    /**
+     * Find ids list by if [from, to] search 
+     */
+    findIdsByRange(from, to, opts?) : Promise<EntityBase[]> {
+        return new Promise<EntityBase[]>((resolved, rejected) => {
+            let search = this.prefix;
+            let def = {
+                include_docs: false,
+                startkey: search + from,
+                endkey: (search + to + "\uffff")
+            };
+            this._db.allDocs(defaults(opts, def)).then((docs) => {
+                // resolve all ids from the serach keys
+                let ids = reduce(docs.rows, (result, r: any) => {
+                    let start = search.length;
+                    let end = r.id.indexOf('/', start);
+                    if ((end + 1) == r.id.length) { // if it's the core id
+                        result.push(r.id.substr(start, end - start));
+                    } 
+                    return result;
+                }, []);
+                return resolved(ids);
+            }).catch((m) => {
+                return rejected(new Error(m));
+            })
+        })
+    }    
 
     /**
      * Returns the parent database

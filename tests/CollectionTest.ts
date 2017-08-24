@@ -302,7 +302,15 @@ import { Promise } from 'ts-promise';
             let s = Date.now() - 7000;
             return keyupdates.findByIds(s, e);
         }).then((ks) => {
-            if (!ks || ks.length == 0) { // 0 should not be added
+            if (!ks || ks.length == 0) { 
+                console.log(0);
+                throw new Error("range was not found as expected")
+            }
+            let e = Date.now();
+            let s = Date.now() - 7000;
+            return keyupdates.findIdsByRange(s, e);
+        }).then((ids) => {
+            if (!ids || ids.length == 0) { 
                 console.log(0);
                 throw new Error("range was not found as expected")
             }
