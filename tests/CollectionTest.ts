@@ -276,7 +276,27 @@ import { Promise } from 'ts-promise';
         }).catch((m) => {
             console.log(m)
         });
-    }   
+    } 
+    
+    @test ("insert values and serach descending")
+    testSearchWithDesc(done: Function) {
+        let keyupdates = new KeyUpdates(CollectionTest.db, KeyUpdate);
+        let ps = [];
+        _.times(10, (i) => {
+            ps.push(keyupdates.insert({ my_number: i }));
+        })
+        Promise.all(ps).then((k) => {
+            return keyupdates.find('my_number', '', { startsWith : true, descending: true });
+        }).then((k) => {
+            if (k[0].my_number < k[1].my_number) {
+                console.log(k);
+                throw new Error("need to be descending");
+            }
+            done();
+        }).catch((m) => {
+            console.log(m)
+        });
+    }     
 
     @test ("insert values and serach for greater than")
     testSearchForGreaterThan(done: Function) {

@@ -118,11 +118,11 @@ export class EntityCollectionBase {
             let startsWith = opts && opts.startsWith
             let gte = opts && opts.gte;
             let search = this.prefix + key + '/' + value + (startsWith ? "" : "/");
-            this._db.allDocs(defaults(opts, {
+            this._db.allDocs(this._switchDescending(defaults(opts, {
                 include_docs: false,
                 startkey: search,
                 endkey: gte ? undefined : (search + "\uffff")
-            })).then((docs) => {
+            }))).then((docs) => {
                 // resolve all ids from the serach keys
                 let ids = uniq(map(docs.rows, (r: any) => {
                     let start = startsWith ? r.id.indexOf('/', search.length) + 1 : search.length;
@@ -150,11 +150,11 @@ export class EntityCollectionBase {
             let gte = opts && opts.gte;
             let pk = this.prefix + key + '/';
             let search = pk + value + (startsWith ? "" : "/");
-            this._db.allDocs(defaults(opts, {
+            this._db.allDocs(this._switchDescending(defaults(opts, {
                 include_docs: false,
                 startkey: search,
                 endkey: gte ? undefined : (search + "\uffff")
-            })).then((docs) => {
+            }))).then((docs) => {
                 // resolve all ids from the serach keys
                 let ids = uniqBy(map(docs.rows, (r : any) => {
                     let ss = r.id.split('/');
@@ -173,12 +173,11 @@ export class EntityCollectionBase {
     findByIds(from, to, opts?) : Promise<EntityBase[]> {
         return new Promise<EntityBase[]>((resolved, rejected) => {
             let search = this.prefix;
-            let def = {
+            this._db.allDocs(this._switchDescending(defaults(opts, {
                 include_docs: false,
                 startkey: search + from,
                 endkey: (search + to + "\uffff")
-            };
-            this._db.allDocs(defaults(opts, def)).then((docs) => {
+            }))).then((docs) => {
                 // resolve all ids from the serach keys
                 let ids = reduce(docs.rows, (result, r: any) => {
                     let start = search.length;
@@ -308,6 +307,16 @@ export class EntityCollectionBase {
         }).catch(() => {
             return rejected(entity);
         });
+    }
+
+    _switchDescending(options) {
+        if (!options.descending) {
+            return options;
+        }
+        let start = options['startkey'];
+        options['startkey'] = options['endkey'];
+        options['endkey'] = start;
+        return options;
     }
 
 }
