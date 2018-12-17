@@ -103,6 +103,16 @@ export class EntityBase {
         return this;
     }
 
+    updateCore(core: any) {
+        forIn(core, (value, key) => {
+            if (!key || !value || !this.core[key]) {
+                throw new Error("unable to update with empty key or value");
+            }
+            this.core[key] = value;
+        })
+        this.core._updated = true;
+    }
+
     addSearchKey(key, value) {
         if (isUndefined(value) || isUndefined(key)) {
             return this;
@@ -147,6 +157,7 @@ export class EntityBase {
     save() : Promise<EntityBase> {
 
         let t = this;
+        let core = this.core;
         let buckets = this.buckets;
         let collection = this._collection;
         let search_keys_ref = this.search_keys_ref;
@@ -154,6 +165,12 @@ export class EntityBase {
         return new Promise<EntityBase>((resolved, rejected) => {
 
             let ps = [];
+
+            if (core._updated) {
+                delete core._updated;
+                ps.push(collection.getDb().put(core));
+            }
+
             forIn(buckets, (bucket: any, store) => {
                 if (bucket._added || bucket._updated) {
                     delete bucket._added;

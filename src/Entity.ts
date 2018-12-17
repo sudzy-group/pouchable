@@ -1,7 +1,7 @@
 /**
  * Represents each entity in the system, wrapper of EntityBase
  */
-import { map, forIn } from 'lodash';
+import { map, forIn, keys } from 'lodash';
 import { EntityBase } from './EntityBase'
 import { Collection } from './Collection'
 import { Promise } from 'ts-promise';
@@ -52,9 +52,10 @@ export class Entity  {
         return bucket ? bucket[key] : null;
     }
 
-    public updateBuckets(buckets, skc) : Promise<Entity> {
+    public updateBuckets(buckets, skc, core) : Promise<Entity> {
         return new Promise<Entity>((resolved, rejected) => {
             let t = this;
+            keys(core).length && this._base.updateCore(core);
             forIn(buckets, (bucket, name) => {
                 this._base.updateBucket(name, bucket);
             })

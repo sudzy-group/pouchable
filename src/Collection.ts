@@ -149,8 +149,10 @@ export abstract class Collection<T extends Entity> {
             // resolve the buckets 
             let bs = this._resolveBuckets(data);
 
+            let core = this._resolveCoreFields(data);
+
             // do the change all together
-            return entity.updateBuckets(bs, skc).then((t) => {
+            return entity.updateBuckets(bs, skc, core).then((t) => {
                 return resolved(t)
             }).catch((m) => {
                 return rejected(m);
@@ -173,28 +175,9 @@ export abstract class Collection<T extends Entity> {
     } 
         
     private _resolveCore(data, created_at): any {
-        let md = this._ctor.prototype.metadata;
-        let result: any = {};
-        let t = this;
-        forIn(data, (value, key) => {
-            let mk = md[key];
-            if (!mk) {
-                throw new Error("missing definition for " + key);
-            }
-            if (mk.mandatory) {
-                // validate value 
-                let f = mk.validate;
-                let isValid = isFunction(f)? f(value) : (isUndefined(f) || t._ctor.prototype[f](value));
-                if (!isValid) {
-                    throw new Error("Error assigning key " + key + " to value " + value);
-                }
-
-                // assign key / value to core 
-                result[key] = value;
-            }
-        })
-
+        let result: any = this._resolveCoreFields(data);
         // makes sure all mandatory fields were assigned
+        let md = this._ctor.prototype.metadata;
         let c = 0;
         forIn(md, (md) => {
             if (md.mandatory) {
@@ -231,6 +214,30 @@ export abstract class Collection<T extends Entity> {
         return result;
      }
 
+     private _resolveCoreFields(data): any {
+        let md = this._ctor.prototype.metadata;
+        let result: any = {};
+        let t = this;
+        forIn(data, (value, key) => {
+            let mk = md[key];
+            if (!mk) {
+                throw new Error("missing definition for " + key);
+            }
+            if (mk.mandatory) {
+                // validate value 
+                let f = mk.validate;
+                let isValid = isFunction(f)? f(value) : (isUndefined(f) || t._ctor.prototype[f](value));
+                if (!isValid) {
+                    throw new Error("Error assigning key " + key + " to value " + value);
+                }
+
+                // assign key / value to core 
+                result[key] = value;
+            }
+        })
+        return result;
+     }
+
      private _resolveSearchKeys(data): any[] {
         let md = this._ctor.prototype.metadata;
         let result = [];
@@ -254,7 +261,7 @@ export abstract class Collection<T extends Entity> {
 
         forIn(data, (value, key) => {
             let mk = md[key];
-            if (mk && !mk.mandatory && mk.search_by) {
+            if (mk && mk.search_by) {
                 result.remove.push(key);
                 let fs = mk.search_by;
                 for (let f of fs) {
@@ -272,12 +279,18 @@ export abstract class Collection<T extends Entity> {
 
         forIn(data, (value, key) => {
             let mk = md[key];
-            if (!mk || mk.mandatory) {
+            if (!mk) {
                 throw new Error("cannot update key " + key);
-            }                      
-            let bucket = entity._base.buckets[mk.group];
-            if (!bucket || !isEqual(value, bucket[key])) {
-                result[key] = value;    
+            }
+            if (mk.mandatory) {
+                if (!isEqual(value, entity._base.core[key])) {
+                    result[key] = value;
+                }
+            } else {
+                let bucket = entity._base.buckets[mk.group];
+                if (!bucket || !isEqual(value, bucket[key])) {
+                    result[key] = value;    
+                }
             }
          });
 

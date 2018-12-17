@@ -123,6 +123,28 @@ import { Promise } from 'ts-promise';
         });
     }
 
+    @test ("update mandatory field")
+    testUpdateMandator(done: Function) {
+        let users = new Users(CollectionTest.db, User);
+        users.insert({ name: "New Two", mobile : "6465490999"}).then((u) => {
+            return users.update(u, { mobile : "6465499991"} );
+        }).then(u=> {
+            if (u.mobile != "6465499991") {
+                throw new Error("Unable to update mobile");
+            }
+            return users.find('mobile', '9991');
+        }).then(us=> {  
+            if (!us || us.length == 0 || us[0].mobile != '6465499991') {
+                throw new Error("Unable to find by updated mobile");
+            }
+            return users.find('mobile', '6465490999');
+        }).then(us=> {              
+            if (us.length != 0) {
+                throw new Error("Error finding old key");
+            }
+            done()
+        }).catch((m) => console.log(m));
+    }
 
     @test ("missing mandatory should return failure")
     testInsertErrorMissingCore(done: Function) {
