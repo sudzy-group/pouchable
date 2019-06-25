@@ -48,9 +48,9 @@ export abstract class Collection<T extends Entity> {
      * Get entity by its id
      * @param id 
      */
-    public get(id) : Promise<T> { 
+    public get(id, options?) : Promise<T> { 
         return new Promise<T>((resolved, rejected)=> {
-            this._collectionBase.getById(id).then((eb) => {
+            this._collectionBase.getById(id, options).then((eb) => {
                 return resolved(new this._ctor(eb));
             }).catch((m) => {
                 return rejected(m)

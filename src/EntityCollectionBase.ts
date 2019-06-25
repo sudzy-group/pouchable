@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, findIndex, values, keys, uniq, uniqBy, defaults, forIn, isUndefined, reduce } from 'lodash';
+import { concat, compact, map, startsWith, values, keys, uniq, uniqBy, defaults, forIn, isUndefined, reduce } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -93,15 +93,24 @@ export class EntityCollectionBase {
     /**
      * Get entity by id
      */
-    getById(id) : Promise<EntityBase> {
+    getById(id, buckets?) : Promise<EntityBase> {
         return new Promise<EntityBase>((resolved, rejected) => {
             // generate id
             let prefix = this.prefix + id + "/";
-            this._db.allDocs({
-                include_docs: true,
-                startkey: prefix,
-                endkey: prefix + "\uffff"
-            }).then((docs) => {
+            let allDocs;
+            if (buckets) {
+                allDocs = this._db.allDocs({
+                    include_docs: true,
+                    keys: map(buckets, b => (prefix + b))
+                })
+            } else {
+                allDocs = this._db.allDocs({
+                    include_docs: true,
+                    startkey: prefix,
+                    endkey: prefix + "\uffff"
+                })
+            }
+            allDocs.then((docs) => {
                 let e = this._createEntityFromDocs(docs, prefix, id);
                 return resolved(e);
             }).catch((m) => {
