@@ -180,7 +180,7 @@ import { Promise } from 'ts-promise';
     testGetEntityByIdAndFields(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
-            return users.get(p.id, ['']);
+            return users.get(p.id, ['fake']);
         }).then((p) => {
             if (!p || !p.name || p.street) { // no street
                 throw new Error("street should not be fetched");
@@ -193,7 +193,7 @@ import { Promise } from 'ts-promise';
     testGetEntityByIdAndMultipleFields(done: Function) {
         let users = new Users(CollectionTest.db, User);
         users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
-            return users.get(p.id, ['', 'address']);
+            return users.get(p.id, ['', 'address', 'fake']);
         }).then((p) => {
             if (!p || !p.name || !p.street) { 
                 throw new Error("street should be fetched");

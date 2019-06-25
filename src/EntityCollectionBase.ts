@@ -3,7 +3,7 @@
  * constructing, destructing and querying
  */
 import * as PouchDB from 'pouchdb';
-import { concat, compact, map, startsWith, values, keys, uniq, uniqBy, defaults, forIn, isUndefined, reduce } from 'lodash';
+import { concat, compact, map, startsWith, values, keys, uniq, uniqBy, defaults, forIn, isUndefined, reduce, remove } from 'lodash';
 
 import { IdGenerator } from './IdGenerator';
 import { DateIdGenerator } from './DateIdGenerator';
@@ -99,6 +99,9 @@ export class EntityCollectionBase {
             let prefix = this.prefix + id + "/";
             let allDocs;
             if (buckets) {
+                if (buckets.indexOf('') == -1) { // add default if missing
+                    buckets.push('')
+                }
                 allDocs = this._db.allDocs({
                     include_docs: true,
                     keys: map(buckets, b => (prefix + b))
@@ -111,6 +114,7 @@ export class EntityCollectionBase {
                 })
             }
             allDocs.then((docs) => {
+                remove(docs.rows, (d:any) => (!d.id || d.error));
                 let e = this._createEntityFromDocs(docs, prefix, id);
                 return resolved(e);
             }).catch((m) => {
