@@ -93,28 +93,15 @@ export class EntityCollectionBase {
     /**
      * Get entity by id
      */
-    getById(id, buckets?) : Promise<EntityBase> {
+    getById(id) : Promise<EntityBase> {
         return new Promise<EntityBase>((resolved, rejected) => {
             // generate id
             let prefix = this.prefix + id + "/";
-            let allDocs;
-            if (buckets) {
-                if (buckets.indexOf('') == -1) { // add default if missing
-                    buckets.push('')
-                }
-                allDocs = this._db.allDocs({
-                    include_docs: true,
-                    keys: map(buckets, b => (prefix + b))
-                })
-            } else {
-                allDocs = this._db.allDocs({
-                    include_docs: true,
-                    startkey: prefix,
-                    endkey: prefix + "\uffff"
-                })
-            }
-            allDocs.then((docs) => {
-                remove(docs.rows, (d:any) => (!d.id || d.error));
+            this._db.allDocs({
+                include_docs: true,
+                startkey: prefix,
+                endkey: prefix + "\uffff"
+            }).then((docs) => {
                 let e = this._createEntityFromDocs(docs, prefix, id);
                 return resolved(e);
             }).catch((m) => {

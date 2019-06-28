@@ -174,33 +174,7 @@ import { Promise } from 'ts-promise';
             }
             done();
         }).catch(_.noop);
-    }
-
-    @test ("get by id after inserted doc should return entity with fields")
-    testGetEntityByIdAndFields(done: Function) {
-        let users = new Users(CollectionTest.db, User);
-        users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
-            return users.get(p.id, ['fake']);
-        }).then((p) => {
-            if (!p || !p.name || p.street) { // no street
-                throw new Error("street should not be fetched");
-            }
-            done();
-        }).catch(_.noop);
-    }    
-
-    @test ("get by id after inserted doc should return entity with multiple fields")
-    testGetEntityByIdAndMultipleFields(done: Function) {
-        let users = new Users(CollectionTest.db, User);
-        users.insert({ name: "New One", mobile : "6465490560", street : "Orchard St."}).then((p) => {
-            return users.get(p.id, ['', 'address', 'fake']);
-        }).then((p) => {
-            if (!p || !p.name || !p.street) { 
-                throw new Error("street should be fetched");
-            }
-            done();
-        }).catch(_.noop);
-    }        
+    } 
 
     @test ("find by key value")
     testFindByKeyVal(done: Function) {
