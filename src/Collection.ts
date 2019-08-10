@@ -31,12 +31,12 @@ export abstract class Collection<T extends Entity> {
      */
     public abstract getPrefix(): string;
 
-    public insert(data, created_at: number = null) : Promise<T> { 
+    public insert(data, created_at: number = null, originalId: string = null) : Promise<T> { 
         return new Promise<T>((resolved, rejected)=> {
             let c = this._resolveCore(data, created_at);
             let b = values(this._resolveBuckets(data));
             let sks = this._resolveSearchKeys(data);
-            this._collectionBase.insert(c, b, sks).then((eb) => {
+            this._collectionBase.insert(c, b, sks, originalId).then((eb) => {
                 return resolved(new this._ctor(eb));
             }).catch((m) => {
                 return rejected(m)
@@ -50,7 +50,7 @@ export abstract class Collection<T extends Entity> {
      */
     public get(id, options?) : Promise<T> { 
         return new Promise<T>((resolved, rejected)=> {
-            this._collectionBase.getById(id, options).then((eb) => {
+            this._collectionBase.getById(id).then((eb) => {
                 return resolved(new this._ctor(eb));
             }).catch((m) => {
                 return rejected(m)
@@ -152,7 +152,7 @@ export abstract class Collection<T extends Entity> {
             let core = this._resolveCoreFields(data);
 
             // do the change all together
-            return entity.updateBuckets(bs, skc, core).then((t) => {
+            return entity.updateBuckets(bs, skc, core).then((t: any) => {
                 return resolved(t)
             }).catch((m) => {
                 return rejected(m);

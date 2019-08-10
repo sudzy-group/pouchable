@@ -49,11 +49,11 @@ export class EntityCollectionBase {
     /**
      * Insert a new entity
      */
-    insert(core, buckets?: any[], keys? : any[]) : Promise<EntityBase> {
+    insert(core, buckets?: any[], keys? : any[], originalId?: string) : Promise<EntityBase> {
 
         return new Promise<EntityBase>((resolved, rejected) => {
             // generate id
-            let id = this._idGenerator.get();
+            let id = originalId || this._idGenerator.get();
             let e_core = this._resolveCore(core, id);
             let e_buckets = buckets ? this._resolveBuckets(buckets, id) : {};
             let e_search_keys_ref = keys ? this. _resolveSearchKeysRef(keys, id) : {};

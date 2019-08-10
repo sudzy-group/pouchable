@@ -48,6 +48,22 @@ import { Promise } from 'ts-promise';
         }).catch(_.noop);
     }
 
+    @test ("insert doc with created_at and original id should return entity")
+    testInsertDoc2WithId(done: Function) {
+        let posts = new Posts(CollectionTest.db, Post);
+        const created_at = new Date().getTime()
+        const originalId = created_at + '-' + Math.random();
+        posts.insert({ title: "New Two"}, created_at, originalId).then((p) => {
+            if (p.title != "New Two") {
+                throw new Error("missing data");
+            }
+            if (p.id != originalId) {
+                throw new Error("error assignining original id");
+            }
+            done();
+        }).catch(_.noop);
+    }    
+
     @test ("insert doc with created_at in the previous should return entity")
     testInsertDoc3(done: Function) {
         let posts = new Posts(CollectionTest.db, Post);
